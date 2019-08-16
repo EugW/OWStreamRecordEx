@@ -15,12 +15,7 @@ find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 
-file(GLOB_RECURSE ttt_SRC
-        "*.h"
-        "*.cpp"
-        "*.c")
-
-add_executable(OWStreamRecordEx src/main.cpp src/mainwindow.cpp src/mainwindow.h src/mainwindow.ui src/ScreenShooter.cpp src/ScreenShooter.h src/SHMEMReader.cpp src/SHMEMReader.h src/VisionThread.cpp src/VisionThread.h src/owsrx.rc src/icon.ico ${ttt_SRC})
+add_executable(OWStreamRecordEx src/main.cpp src/mainwindow.cpp src/mainwindow.h src/mainwindow.ui src/ScreenShooter.cpp src/ScreenShooter.h src/SHMEMReader.cpp src/SHMEMReader.h src/VisionThread.cpp src/VisionThread.h res/owsrx.rc res/icon.ico)
 
 target_link_libraries(OWStreamRecordEx Qt5::Core)
 target_link_libraries(OWStreamRecordEx Qt5::Gui)
