@@ -1,10 +1,14 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "ui_mainwindow.h"
+#include "VisionWorker.h"
 #include <QMainWindow>
 #include <QGraphicsView>
+#include <QGraphicsPixmapItem>
 #include <QPushButton>
 #include <QLabel>
+#include <leptonica/allheaders.h>
 
 namespace Ui {
 class MainWindow;
@@ -19,21 +23,21 @@ public:
     ~MainWindow() override;
 
 private:
+    QImage image;
+    u_char *imgData;
     Ui::MainWindow *ui;
+    VisionWorker *worker;
+    QThread *thread;
 private slots:
-    void on_pushButton1_clicked();
-    void on_pushButton2_clicked();
-    void on_pushButtonStop_clicked();
     void on_pushButtonSHMEM_clicked();
-    void on_pushButtonSCR_clicked();
+    void on_pushButtonDest_clicked();
+
+public slots:
+    void updImage(Pix *pix);
+    void workerDeath();
 private:
-    QGraphicsView *graphicsViewPreview;
-    //QPushButton *pushButton1;
-    //QPushButton *pushButton2;
-    //QPushButton *pushButtonStop;
-    QPushButton *pushButtonSHMEM;
-    //QPushButton *pushButtonSCR;
-    //QLabel *label1;
+    QGraphicsScene *graphicsScene;
+    QGraphicsPixmapItem *pixmap;
 };
 
 #endif // MAINWINDOW{}_H

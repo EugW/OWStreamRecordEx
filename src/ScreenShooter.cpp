@@ -58,11 +58,14 @@ void* ScreenShooter::take() {
     bi.biPlanes = 1;
     bi.biBitCount = 24;
     bi.biCompression = BI_RGB;
-    DWORD dwBmpSize = (bmpScreen.bmWidth * bi.biBitCount + 31) /32 * bmpScreen.bmHeight * 4;
-    auto *lpbitmap = static_cast<uint8_t *>(malloc(dwBmpSize));
+    DWORD dwBmpSize = bi.biWidth * bi.biHeight * 3;
+    if (firstRun) {
+        data = (uint8_t *) malloc(dwBmpSize);
+        firstRun = false;
+    }
     GetDIBits(hdcWindow, hbmScreen, 0,
               bmpScreen.bmHeight,
-              lpbitmap,
+              data,
               reinterpret_cast<LPBITMAPINFO>(&bi), DIB_RGB_COLORS);
     bmfHeader.bfOffBits = (DWORD)sizeof(BITMAPFILEHEADER) + (DWORD)sizeof(BITMAPINFOHEADER);
     bmfHeader.bfType = 0x4D42;
@@ -77,14 +80,13 @@ void* ScreenShooter::take() {
     DWORD dwBytesWritten = 0;
     WriteFile(hFile, (LPSTR)&bmfHeader, sizeof(BITMAPFILEHEADER), &dwBytesWritten, NULL);
     WriteFile(hFile, (LPSTR)&bi, sizeof(BITMAPINFOHEADER), &dwBytesWritten, NULL);
-    WriteFile(hFile, lpbitmap, dwBmpSize, &dwBytesWritten, NULL);
-     printf("s:%u", lpbitmap[0]);
+    WriteFile(hFile, data, dwBmpSize, &dwBytesWritten, NULL);
     CloseHandle(hFile);
     std::vector<unsigned char> buffer(sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + dwBmpSize);
     std::copy(reinterpret_cast<unsigned char*>(&bmfHeader), reinterpret_cast<unsigned char*>(&bmfHeader) + sizeof(BITMAPFILEHEADER), buffer.begin());
     std::copy(reinterpret_cast<unsigned char*>(&bi), reinterpret_cast<unsigned char*>(&bi) + sizeof(BITMAPINFOHEADER), buffer.begin() + sizeof(BITMAPFILEHEADER));
-    std::copy(lpbitmap, lpbitmap + dwBmpSize, buffer.begin() + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER));
-    free(lpbitmap);
+    std::copy(data, data + dwBmpSize, buffer.begin() + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER));
+    //free(lpbitmap);
     DeleteObject(hbmScreen);
     DeleteObject(hdcMemDC);
     ReleaseDC(targetHWND,hdcWindow);

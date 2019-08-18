@@ -8,6 +8,7 @@
 class ScreenShooter {
 private:
     static BOOL CALLBACK enumWindowsProc(__in HWND hWnd, __in LPARAM lParam);
+    bool firstRun;
 public:
     ScreenShooter();
     uint8_t *data{};

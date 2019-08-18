@@ -3,14 +3,23 @@
 
 
 #include <cstdint>
+#include <leptonica/allheaders.h>
+#include <Windows.h>
 
 class SHMEMReader {
 private:
-    bool firstRun;
+    HANDLE hMapFile;
+    uint32_t * pBuf;
+    uint32_t * width;
+    uint32_t * height;
+    uint32_t size;
+    uint8_t * data;
+    BITMAPFILEHEADER   bmfHeader{};
+    BITMAPINFOHEADER   bi{} ;
 public:
     SHMEMReader();
-    uint8_t *data{};
-    void *read();
+    ~SHMEMReader();
+    void * read();
 };
 
 
