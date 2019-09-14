@@ -1,6 +1,4 @@
 #include "mainwindow.h"
-
-#include "ScreenShooter.h"
 #include "VisionWorker.h"
 
 #include <iostream>
@@ -9,8 +7,6 @@
 
 MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent),ui(new Ui::MainWindow) {
     ui->setupUi(this);
-    worker = new VisionWorker(0);
-    thread = new QThread;
     graphicsScene = new QGraphicsScene;
     ui->graphicsViewPreview->setScene(graphicsScene);
     image = QImage(320, 180, QImage::Format_RGB32);
@@ -46,22 +42,16 @@ MainWindow::~MainWindow()
 
 
 void MainWindow::on_pushButtonSHMEM_clicked() {
-    //auto sh = SHMEMReader();
-    //auto pixxx = (Pix *)(sh.read());
-    //pixWritePng("finalTest.png", pixxx,0);
-    //auto th = VisionWorker(1, ui);
-    //connect((QObject *)th, SIGNAL(updatePreview(Pix*)), this, SLOT(updImage(Pix*)));
-    //th.start();
-    worker = new VisionWorker(0);
+    worker = new VisionWorker(ui->checkBoxOBS->checkState() == Qt::Checked ? 1 : 0);
     thread = new QThread;
-        worker->moveToThread(thread);
-        connect(thread, SIGNAL(started()), worker, SLOT(process()));
-        connect(worker, SIGNAL(updPreview(Pix*)), this, SLOT(updImage(Pix*)));
-        connect(worker, SIGNAL (finished()), thread, SLOT (quit()));
-        connect(worker, SIGNAL (finished()), worker, SLOT (deleteLater()));
-        connect(thread, SIGNAL (finished()), thread, SLOT (deleteLater()));
-        connect(worker, SIGNAL(finished()), this, SLOT(workerDeath()));
-        thread->start();
+    worker->moveToThread(thread);
+    connect(thread, SIGNAL(started()), worker, SLOT(process()));
+    connect(worker, SIGNAL(updPreview(Pix * )), this, SLOT(updImage(Pix * )));
+    connect(worker, SIGNAL (finished()), thread, SLOT (quit()));
+    connect(worker, SIGNAL (finished()), worker, SLOT (deleteLater()));
+    connect(thread, SIGNAL (finished()), thread, SLOT (deleteLater()));
+    connect(worker, SIGNAL(finished()), this, SLOT(workerDeath()));
+    thread->start();
 }
 
 void MainWindow::on_pushButtonDest_clicked() {
@@ -75,9 +65,7 @@ void MainWindow::updImage(Pix *pix) {
     pixmap->setPixmap(QPixmap::fromImage(image.rgbSwapped()));
     pixDestroy(&swpPx);
     pixDestroy(&pix);
-    printf("fisrt call\n");
 }
 
 void MainWindow::workerDeath() {
-
 }

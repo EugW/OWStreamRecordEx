@@ -5,17 +5,35 @@
 #ifndef OWSTREAMRECORDEX_VISIONWORKER_H
 #define OWSTREAMRECORDEX_VISIONWORKER_H
 
-#include "SHMEMReader.h"
-#include "ScreenShooter.h"
+#include "MFindWindow.h"
 #include <QObject>
+#include <leptonica/allheaders.h>
+#include <tesseract/baseapi.h>
 
 class VisionWorker : public QObject {
     Q_OBJECT
 private:
+    int width;
+    int height;
     int capture_mode;
-    SHMEMReader *shmemReader;
-    ScreenShooter *screenShooter;
+    BITMAPFILEHEADER   bmfHeader{};
+    BITMAPINFOHEADER   bi{};
+    HANDLE hMapFile;
+    HWND targetHWND;
+    HDC hdcWindow;
+    HDC hdcMemDC;
+    HBITMAP hbmScreen;
+    BITMAP bmpScreen{};
+    int size;
+    uint32_t * pBuf;
+    uint32_t * scrData;
     Pix *img;
+    void SHMEM2PIX();
+    void SCR2PIX();
+    void analyze();
+    Box* boxes[3]{};
+    tesseract::TessBaseAPI * api;
+    const char * names[3]{"tank", "dps", "support"};
 public:
     explicit VisionWorker(int capture_mode);
     ~VisionWorker() override;

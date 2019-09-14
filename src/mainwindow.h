@@ -26,8 +26,8 @@ private:
     QImage image;
     u_char *imgData;
     Ui::MainWindow *ui;
-    VisionWorker *worker;
-    QThread *thread;
+    VisionWorker *worker{};
+    QThread *thread{};
 private slots:
     void on_pushButtonSHMEM_clicked();
     void on_pushButtonDest_clicked();
