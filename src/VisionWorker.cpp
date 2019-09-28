@@ -62,14 +62,14 @@ void VisionWorker::process() {
 }
 
 VisionWorker::VisionWorker(int capture_mode) {
-    auto tank = boxCreate(626, 594, 64, 38);
+    auto tank = boxCreate(622, 594, 64, 38);
     auto dps = boxCreate(941, 594, 64, 38);
-    auto support = boxCreate(1259, 594, 64, 38);
+    auto support = boxCreate(1257, 594, 64, 38);
     boxes[0] = tank;
     boxes[1] = dps;
     boxes[2] = support;
     api = new tesseract::TessBaseAPI();
-    api->Init(nullptr, "eng");
+    api->Init(nullptr, "BigNoodleTooOblique");
     bi.biSize = sizeof(BITMAPINFOHEADER);
     bi.biPlanes = 1;
     bi.biBitCount = 24;
