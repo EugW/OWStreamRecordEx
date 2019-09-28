@@ -26,19 +26,73 @@ void VisionWorker::SCR2PIX() {
 }
 
 void VisionWorker::analyze() {
-    int j = 0;
-    for (auto & i : boxes) {
-        auto targetPix = pixClipRectangle(img, i, nullptr);
-        api->SetImage(targetPix);
-        printf("%s: %s",names[j] , api->GetUTF8Text());
-        switch (j) {
-            case 0: pixWritePng("tank.png", targetPix, 0.0);
-            case 1: pixWritePng("dps.png", targetPix, 0.0);
-            case 2: pixWritePng("support.png", targetPix, 0.0);
-            default:;
+    out.open("outfile.txt", std::ios::trunc | std::ios::out);
+    for (int i = 0; i < 3; i++) {
+        auto preTargetPix = pixClipRectangle(img, roleBoxes[i], nullptr);
+        textApi->SetImage(preTargetPix);
+        std::string roleNM = ((std::string)textApi->GetUTF8Text()).substr(0, names[i].size());
+        std::transform(roleNM.begin(), roleNM.end(), roleNM.begin(),
+                       [](unsigned char c){ return std::tolower(c); });
+        if (roleNM == names[i]) {
+            auto targetPix = pixClipRectangle(img, srBoxes[i], nullptr);
+            numApi->SetImage(targetPix);
+            int res = std::stoi(numApi->GetUTF8Text());
+            //
+            //printf("%s: %d\n", names[i].c_str(), res);
+            switch (i) {
+                case 0:
+                    if (tnk.sr == 0) {
+                        tnk.sr = res;
+                    }
+                    if (res != tnk.sr) {
+                        if (res > tnk.sr) {
+                            tnk.wins++;
+                        } else if (res < tnk.sr) {
+                            tnk.losses++;
+                        }
+                    }
+                    //pixWritePng("tank.png", preTargetPix, 0.0);
+                    updTank(res);
+                    break;
+                case 1:
+                    if (dmg.sr == 0) {
+                        dmg.sr = res;
+                    }
+                    if (res != dmg.sr) {
+                        if (res > dmg.sr) {
+                            dmg.wins++;
+                        } else if (res < dmg.sr) {
+                            dmg.losses++;
+                        }
+                    }
+                    //pixWritePng("dps.png", preTargetPix, 0.0);
+                    updDPS(res);
+                    break;
+                case 2:
+                    if (sup.sr == 0) {
+                        sup.sr = res;
+                    }
+                    if (res != sup.sr) {
+                        if (res > sup.sr) {
+                            sup.wins++;
+                        } else if (res < sup.sr) {
+                            sup.losses++;
+                        }
+                    }
+                    //pixWritePng("support.png", preTargetPix, 0.0);
+                    updSupport(res);
+                    break;
+                default:;
+            }
+            //updateStats
+            pixDestroy(&targetPix);
         }
-        j++;
+        pixDestroy(&preTargetPix);
     }
+    out << "TANK: " << tnk.wins << "/" << tnk.losses << " SR: " << tnk.sr << "\n"
+        << "DPS: " << dmg.wins << "/" << dmg.losses << " SR: " << dmg.sr << "\n"
+        << "SUPPORT: " << sup.wins << "/" << sup.losses << " SR: " << sup.sr << "\n";
+    out.close();
 }
 
 void VisionWorker::process() {
@@ -62,21 +116,17 @@ void VisionWorker::process() {
 }
 
 VisionWorker::VisionWorker(int capture_mode) {
-    auto tank = boxCreate(622, 594, 64, 38);
-    auto dps = boxCreate(941, 594, 64, 38);
-    auto support = boxCreate(1257, 594, 64, 38);
-    boxes[0] = tank;
-    boxes[1] = dps;
-    boxes[2] = support;
-    api = new tesseract::TessBaseAPI();
-    api->Init(nullptr, "BigNoodleTooOblique");
+    numApi = new tesseract::TessBaseAPI();
+    numApi->Init(nullptr, "BigNoodleTooOblique");
+    textApi = new tesseract::TessBaseAPI();
+    textApi->Init(nullptr, "eng");
     bi.biSize = sizeof(BITMAPINFOHEADER);
     bi.biPlanes = 1;
     bi.biBitCount = 24;
     bi.biCompression = BI_RGB;
     bi.biSizeImage = 0;
-    bi.biXPelsPerMeter = 0;
-    bi.biYPelsPerMeter = 0;
+    bi.biXPelsPerMeter = 70 * 39.37;
+    bi.biYPelsPerMeter = 70 * 39.37;
     bi.biClrUsed = 0;
     bi.biClrImportant = 0;
     bmfHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
@@ -84,12 +134,12 @@ VisionWorker::VisionWorker(int capture_mode) {
     if (capture_mode == 1) {
         hMapFile = OpenFileMapping(FILE_MAP_READ, FALSE, "OWStreamRecordExRec:SHMEM");
         if (hMapFile == nullptr) {
-            printf(TEXT("Could not open file mapping object (%d).\n"), GetLastError());
+            printf("Could not open file mapping object.\n");
             return;
         }
         pBuf = (uint32_t *)MapViewOfFile(hMapFile, FILE_MAP_READ, 0, 0, 0);
         if (pBuf == nullptr) {
-            printf(TEXT("Could not map view of file (%d).\n"), GetLastError());
+            printf("Could not map view of file.\n");
             CloseHandle(hMapFile);
             return;
         }
@@ -132,8 +182,12 @@ VisionWorker::~VisionWorker() {
         free(scrData);
     }
     pixDestroy(&img);
-    boxDestroy(&boxes[0]);
-    boxDestroy(&boxes[1]);
-    boxDestroy(&boxes[2]);
-    api->End();
+    boxDestroy(&srBoxes[0]);
+    boxDestroy(&srBoxes[1]);
+    boxDestroy(&srBoxes[2]);
+    boxDestroy(&roleBoxes[0]);
+    boxDestroy(&roleBoxes[1]);
+    boxDestroy(&roleBoxes[2]);
+    numApi->End();
+    textApi->End();
 }

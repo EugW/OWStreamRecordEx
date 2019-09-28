@@ -34,6 +34,9 @@ private slots:
 
 public slots:
     void updImage(Pix *pix);
+    void updTnk(int sr);
+    void updDmg(int sr);
+    void updSup(int sr);
     void workerDeath();
 private:
     QGraphicsScene *graphicsScene;

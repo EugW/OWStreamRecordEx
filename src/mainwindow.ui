@@ -74,8 +74,8 @@
      <widget class="QPushButton" name="pushButtonSHMEM">
       <property name="geometry">
        <rect>
-        <x>130</x>
-        <y>260</y>
+        <x>300</x>
+        <y>280</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -87,8 +87,8 @@
      <widget class="QLabel" name="label1">
       <property name="geometry">
        <rect>
-        <x>60</x>
-        <y>130</y>
+        <x>460</x>
+        <y>230</y>
         <width>47</width>
         <height>13</height>
        </rect>
@@ -100,8 +100,8 @@
      <widget class="QPushButton" name="pushButtonDest">
       <property name="geometry">
        <rect>
-        <x>80</x>
-        <y>180</y>
+        <x>300</x>
+        <y>240</y>
         <width>75</width>
         <height>23</height>
        </rect>
@@ -113,8 +113,8 @@
      <widget class="QCheckBox" name="checkBoxOBS">
       <property name="geometry">
        <rect>
-        <x>40</x>
-        <y>40</y>
+        <x>260</x>
+        <y>220</y>
         <width>70</width>
         <height>17</height>
        </rect>
@@ -124,6 +124,84 @@
       </property>
       <property name="checked">
        <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labelTankSR">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>10</y>
+        <width>47</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Tank SR: </string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labelTankSRVal">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>10</y>
+        <width>47</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labelDPSSR">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>30</y>
+        <width>47</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>DPS SR: </string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labelDPSSRVal">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>30</y>
+        <width>47</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labelSupportSR">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>50</y>
+        <width>61</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Support SR: </string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="labelSupportSRVal">
+      <property name="geometry">
+       <rect>
+        <x>80</x>
+        <y>50</y>
+        <width>47</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
       </property>
      </widget>
     </widget>

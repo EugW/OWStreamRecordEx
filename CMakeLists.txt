@@ -1,10 +1,8 @@
-
 cmake_minimum_required(VERSION 3.14)
 project(OWStreamRecordEx)
 set(CMAKE_CXX_STANDARD 17)
 
 list(APPEND CMAKE_PREFIX_PATH ${Qt}/lib/cmake)
-#list(APPEND CMAKE_PREFIX_PATH )
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -17,11 +15,6 @@ find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 
-add_executable(OWStreamRecordEx src/main.cpp src/mainwindow.cpp src/mainwindow.h src/mainwindow.ui res/owsrx.rc res/icon.ico src/VisionWorker.cpp src/VisionWorker.h src/MFindWindow.cpp src/MFindWindow.h)
+link_libraries(Qt5::Core Qt5::Gui Qt5::Widgets libtesseract nlohmann_json nlohmann_json::nlohmann_json)
 
-target_link_libraries(OWStreamRecordEx Qt5::Core)
-target_link_libraries(OWStreamRecordEx Qt5::Gui)
-target_link_libraries(OWStreamRecordEx Qt5::Widgets)
-target_link_libraries(OWStreamRecordEx libtesseract)
-target_link_libraries(OWStreamRecordEx nlohmann_json nlohmann_json::nlohmann_json)
-
+add_executable(OWStreamRecordEx src/main.cpp src/mainwindow.cpp src/mainwindow.h src/mainwindow.ui res/owsrx.rc res/icon.ico src/VisionWorker.cpp src/VisionWorker.h src/MFindWindow.cpp src/MFindWindow.h src/Config.cpp src/Config.h)

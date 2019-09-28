@@ -14,32 +14,9 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent),ui(new Ui::MainWind
     pixmap = graphicsScene->addPixmap(QPixmap::fromImage(image));
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
 }
-
-//void MainWindow::on_pushButton1_clicked()
-//{
-//    auto *api = new tesseract::TessBaseAPI();
-//    if (api->Init(NULL, "eng")) {
-//            fprintf(stderr, "Could not initialize tesseract.\n");
-//            exit(1);
-//        }
-//        // Open input image with leptonica library
-//        Pix *image = pixRead("test.png");
-//        api->SetImage(image);
-//        // Get OCR result
-//        char *outText;
-//        outText = api->GetUTF8Text();
-//        std::cout<<outText<<std::endl;
-//        //ui->label1->setText(outText);
-//        // Destroy used object and release memory
-//        api->End();
-//        delete [] outText;
-//        pixDestroy(&image);
-//}
-
 
 void MainWindow::on_pushButtonSHMEM_clicked() {
     worker = new VisionWorker(ui->checkBoxOBS->checkState() == Qt::Checked ? 1 : 0);
@@ -47,6 +24,9 @@ void MainWindow::on_pushButtonSHMEM_clicked() {
     worker->moveToThread(thread);
     connect(thread, SIGNAL(started()), worker, SLOT(process()));
     connect(worker, SIGNAL(updPreview(Pix * )), this, SLOT(updImage(Pix * )));
+    connect(worker, SIGNAL(updTank(int)), this, SLOT(updTnk(int)));
+    connect(worker, SIGNAL(updDPS(int)), this, SLOT(updDmg(int)));
+    connect(worker, SIGNAL(updSupport(int)), this, SLOT(updSup(int)));
     connect(worker, SIGNAL (finished()), thread, SLOT (quit()));
     connect(worker, SIGNAL (finished()), worker, SLOT (deleteLater()));
     connect(thread, SIGNAL (finished()), thread, SLOT (deleteLater()));
@@ -68,4 +48,16 @@ void MainWindow::updImage(Pix *pix) {
 }
 
 void MainWindow::workerDeath() {
+}
+
+void MainWindow::updTnk(int sr) {
+    ui->labelTankSRVal->setText(QString::number(sr));
+}
+
+void MainWindow::updDmg(int sr) {
+    ui->labelDPSSRVal->setText(QString::number(sr));
+}
+
+void MainWindow::updSup(int sr) {
+    ui->labelSupportSRVal->setText(QString::number(sr));
 }
