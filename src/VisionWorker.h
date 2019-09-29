@@ -13,13 +13,16 @@
 #include <QObject>
 #include <leptonica/allheaders.h>
 #include <tesseract/baseapi.h>
+#include "ConfigController.h"
 
 class VisionWorker : public QObject {
     Q_OBJECT
 private:
+    static void replace(std::string& str, const std::string& from, const std::string& to);
+    ConfigController * ctrl;
     int width;
     int height;
-    int capture_mode;
+    bool obs_mode;
     BITMAPFILEHEADER   bmfHeader{};
     BITMAPINFOHEADER   bi{};
     HANDLE hMapFile;
@@ -50,7 +53,7 @@ private:
     stats sup{0, 0, 0};
     std::ofstream out;
 public:
-    explicit VisionWorker(int capture_mode);
+    explicit VisionWorker();
     ~VisionWorker() override;
     bool working;
 
@@ -58,7 +61,6 @@ public slots:
     void process();
 
 signals:
-    //void updLog();
     void updPreview(Pix *pix);
     void updTank(int sr);
     void updDPS(int sr);

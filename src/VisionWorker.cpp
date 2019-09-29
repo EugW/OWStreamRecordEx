@@ -26,7 +26,7 @@ void VisionWorker::SCR2PIX() {
 }
 
 void VisionWorker::analyze() {
-    out.open("outfile.txt", std::ios::trunc | std::ios::out);
+    out.open(ctrl->config.path, std::ios::trunc | std::ios::out);
     for (int i = 0; i < 3; i++) {
         auto preTargetPix = pixClipRectangle(img, roleBoxes[i], nullptr);
         textApi->SetImage(preTargetPix);
@@ -43,8 +43,10 @@ void VisionWorker::analyze() {
                 case 0:
                     if (tnk.sr == 0) {
                         tnk.sr = res;
+                        updTank(res);
                     }
                     if (res != tnk.sr) {
+                        updTank(res);
                         if (res > tnk.sr) {
                             tnk.wins++;
                         } else if (res < tnk.sr) {
@@ -52,13 +54,14 @@ void VisionWorker::analyze() {
                         }
                     }
                     //pixWritePng("tank.png", preTargetPix, 0.0);
-                    updTank(res);
                     break;
                 case 1:
                     if (dmg.sr == 0) {
                         dmg.sr = res;
+                        updDPS(res);
                     }
                     if (res != dmg.sr) {
+                        updDPS(res);
                         if (res > dmg.sr) {
                             dmg.wins++;
                         } else if (res < dmg.sr) {
@@ -66,13 +69,14 @@ void VisionWorker::analyze() {
                         }
                     }
                     //pixWritePng("dps.png", preTargetPix, 0.0);
-                    updDPS(res);
                     break;
                 case 2:
                     if (sup.sr == 0) {
                         sup.sr = res;
+                        updSupport(res);
                     }
                     if (res != sup.sr) {
+                        updSupport(res);
                         if (res > sup.sr) {
                             sup.wins++;
                         } else if (res < sup.sr) {
@@ -80,42 +84,55 @@ void VisionWorker::analyze() {
                         }
                     }
                     //pixWritePng("support.png", preTargetPix, 0.0);
-                    updSupport(res);
                     break;
                 default:;
             }
-            //updateStats
             pixDestroy(&targetPix);
         }
         pixDestroy(&preTargetPix);
     }
-    out << "TANK: " << tnk.wins << "/" << tnk.losses << " SR: " << tnk.sr << "\n"
-        << "DPS: " << dmg.wins << "/" << dmg.losses << " SR: " << dmg.sr << "\n"
-        << "SUPPORT: " << sup.wins << "/" << sup.losses << " SR: " << sup.sr << "\n";
+    auto str = ctrl->config.placeholder;
+    replace(str, "%tW%", to_string(tnk.wins));
+    replace(str, "%tL%", to_string(tnk.losses));
+    replace(str, "%tSR%", to_string(tnk.sr));
+    replace(str, "%dW%", to_string(dmg.wins));
+    replace(str, "%dL%", to_string(dmg.losses));
+    replace(str, "%dSR%", to_string(dmg.sr));
+    replace(str, "%sW%", to_string(sup.wins));
+    replace(str, "%sL%", to_string(sup.losses));
+    replace(str, "%sSR%", to_string(sup.sr));
+    out << str;
     out.close();
+}
+
+void VisionWorker::replace(std::string& str, const std::string& from, const std::string& to) {
+    size_t start_pos = str.find(from);
+    if(start_pos == std::string::npos)
+        return;
+    str.replace(start_pos, from.length(), to);
 }
 
 void VisionWorker::process() {
     int i = 0;
     while (working) {
-        if (capture_mode == 1) {
+        if (obs_mode) {
             SHMEM2PIX();
         } else {
             SCR2PIX();
         }
-        updPreview(pixScaleToSize(img, 320, 180));
+        if (ctrl->config.preview)
+            updPreview(pixScaleToSize(img, 320, 180));
         analyze();
         pixDestroy(&img);
-        Sleep(100);
-        if (i == 5) {
-            working = false;
-        }
+        Sleep(ctrl->config.delay);
         i++;
     }
     finished();
 }
 
-VisionWorker::VisionWorker(int capture_mode) {
+VisionWorker::VisionWorker() {
+    ctrl = ConfigController::getInstance();
+    this->obs_mode = ctrl->config.obs;
     numApi = new tesseract::TessBaseAPI();
     numApi->Init(nullptr, "BigNoodleTooOblique");
     textApi = new tesseract::TessBaseAPI();
@@ -131,7 +148,7 @@ VisionWorker::VisionWorker(int capture_mode) {
     bi.biClrImportant = 0;
     bmfHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
     bmfHeader.bfType = 0x4D42;
-    if (capture_mode == 1) {
+    if (obs_mode) {
         hMapFile = OpenFileMapping(FILE_MAP_READ, FALSE, "OWStreamRecordExRec:SHMEM");
         if (hMapFile == nullptr) {
             printf("Could not open file mapping object.\n");
@@ -163,16 +180,15 @@ VisionWorker::VisionWorker(int capture_mode) {
         bi.biHeight = height;
         size = width * height * 3;
         scrData = (uint32_t *)malloc(size);
-        printf("SZ:%ld,%ld\n", bmpScreen.bmWidth, bmpScreen.bmHeight);
+        //printf("SZ:%ld,%ld\n", bmpScreen.bmWidth, bmpScreen.bmHeight);
     }
     this->img = nullptr;
     this->working = true;
-    this->capture_mode = capture_mode;
-    printf("init\n");
+    //printf("init\n");
 }
 
 VisionWorker::~VisionWorker() {
-    if (capture_mode == 1) {
+    if (obs_mode) {
         UnmapViewOfFile(pBuf);
         CloseHandle(hMapFile);
     } else {

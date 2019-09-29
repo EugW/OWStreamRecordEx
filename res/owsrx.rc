@@ -1,1 +1,2 @@
 IDI_ICON1               ICON    DISCARDABLE     "icon.ico"
+101               TEXT                    "default.json"

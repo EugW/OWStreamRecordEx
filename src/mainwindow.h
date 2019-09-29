@@ -3,6 +3,7 @@
 
 #include "ui_mainwindow.h"
 #include "VisionWorker.h"
+#include "ConfigController.h"
 #include <QMainWindow>
 #include <QGraphicsView>
 #include <QGraphicsPixmapItem>
@@ -14,8 +15,7 @@ namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
@@ -28,10 +28,12 @@ private:
     Ui::MainWindow *ui;
     VisionWorker *worker{};
     QThread *thread{};
+    void startService();
+    bool running = false;
 private slots:
-    void on_pushButtonSHMEM_clicked();
-    void on_pushButtonDest_clicked();
-
+    void on_pushButtonStartService_clicked();
+    void on_pushButtonStopService_clicked();
+    void on_pushButtonApplySettings_clicked();
 public slots:
     void updImage(Pix *pix);
     void updTnk(int sr);

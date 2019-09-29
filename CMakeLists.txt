@@ -15,6 +15,10 @@ find_package(Qt5Core REQUIRED)
 find_package(Qt5Gui REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 
-link_libraries(Qt5::Core Qt5::Gui Qt5::Widgets libtesseract nlohmann_json nlohmann_json::nlohmann_json)
+link_libraries(Qt5::Core Qt5::Gui Qt5::Widgets libtesseract nlohmann_json nlohmann_json::nlohmann_json shlwapi)
 
-add_executable(OWStreamRecordEx src/main.cpp src/mainwindow.cpp src/mainwindow.h src/mainwindow.ui res/owsrx.rc res/icon.ico src/VisionWorker.cpp src/VisionWorker.h src/MFindWindow.cpp src/MFindWindow.h src/Config.cpp src/Config.h)
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    SET(APPTYPE WIN32)
+endif()
+
+add_executable(OWStreamRecordEx ${APPTYPE} src/main.cpp src/mainwindow.cpp src/mainwindow.h src/mainwindow.ui res/owsrx.rc res/icon.ico src/VisionWorker.cpp src/VisionWorker.h src/MFindWindow.cpp src/MFindWindow.h src/ConfigController.cpp src/ConfigController.h)

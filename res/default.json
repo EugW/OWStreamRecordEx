@@ -1,0 +1,7 @@
+{
+  "obs": false,
+  "path": "outFile.txt",
+  "delay": 250,
+  "preview": true,
+  "placeholder": "TANK: %tW%/%tL% SR: %tSR%\nDPS: %dW%/%dL% SR: %dSR%\nSUPPORT: %sW%/%sL% SR: %sSR%\n"
+}
