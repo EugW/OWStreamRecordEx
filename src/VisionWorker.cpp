@@ -1,5 +1,28 @@
 #include "VisionWorker.h"
 #include <QImage>
+#include <Psapi.h>
+
+BOOL CALLBACK VisionWorker::enumWindowsProc(__in HWND hWnd, __in LPARAM lParam) {
+    int length = GetWindowTextLength(hWnd);
+    if (length == 0)
+        return true;
+    auto buffer = new TCHAR[512];
+    memset( buffer, 0, ( 512 ) * sizeof( TCHAR ) );
+    GetWindowText( hWnd, buffer, 512 );
+    auto windowTitle = std::string(buffer);
+    DWORD proc = NULL;
+    GetWindowThreadProcessId(hWnd, &proc);
+    GetModuleFileNameEx(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, proc), nullptr, buffer, 512);
+    auto filePath = std::string(buffer);
+    auto pos = filePath.find_last_of('\\');
+    auto fileName = filePath.substr(pos + 1);
+    delete[] buffer;
+    if (windowTitle == "Overwatch" && fileName == "Overwatch.exe") {
+        reinterpret_cast<VisionWorker *>(lParam)->targetHWND = hWnd;
+        return false;
+    }
+    return true;
+}
 
 void VisionWorker::SHMEM2PIX() {
     if (img)
@@ -132,7 +155,8 @@ void VisionWorker::process() {
 
 VisionWorker::VisionWorker() {
     ctrl = ConfigController::getInstance();
-    this->obs_mode = ctrl->config.obs;
+    obs_mode = ctrl->config.obs;
+    working = false;
     numApi = new tesseract::TessBaseAPI();
     numApi->Init(nullptr, "BigNoodleTooOblique");
     textApi = new tesseract::TessBaseAPI();
@@ -166,7 +190,11 @@ VisionWorker::VisionWorker() {
         bi.biHeight = -height;
         size = width * height * 3;
     } else {
-        targetHWND = MFindWindow::getWindow();
+        EnumWindows(enumWindowsProc, reinterpret_cast<LPARAM>(this));
+        if (targetHWND == nullptr) {
+            printf("Could not find window.\n");
+            return;
+        }
         hdcWindow = GetDC(targetHWND);
         hdcMemDC = CreateCompatibleDC(hdcWindow);
         RECT rcClient;
@@ -182,22 +210,28 @@ VisionWorker::VisionWorker() {
         scrData = (uint32_t *)malloc(size);
         //printf("SZ:%ld,%ld\n", bmpScreen.bmWidth, bmpScreen.bmHeight);
     }
-    this->img = nullptr;
-    this->working = true;
+    working = true;
     //printf("init\n");
 }
 
 VisionWorker::~VisionWorker() {
     if (obs_mode) {
-        UnmapViewOfFile(pBuf);
-        CloseHandle(hMapFile);
+        if (pBuf != nullptr)
+            UnmapViewOfFile(pBuf);
+        if (hMapFile != nullptr)
+            CloseHandle(hMapFile);
     } else {
-        DeleteObject(hbmScreen);
-        DeleteObject(hdcMemDC);
-        ReleaseDC(targetHWND,hdcWindow);
-        free(scrData);
+        if (hbmScreen != nullptr)
+            DeleteObject(hbmScreen);
+        if (hdcMemDC != nullptr)
+            DeleteObject(hdcMemDC);
+        if (targetHWND != nullptr && hdcWindow != nullptr)
+            ReleaseDC(targetHWND,hdcWindow);
+        if (scrData != nullptr)
+            free(scrData);
     }
-    pixDestroy(&img);
+    if (img != nullptr)
+        pixDestroy(&img);
     boxDestroy(&srBoxes[0]);
     boxDestroy(&srBoxes[1]);
     boxDestroy(&srBoxes[2]);

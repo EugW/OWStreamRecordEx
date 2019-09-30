@@ -1,11 +1,6 @@
-//
-// Created by Evgeny on 8/17/2019.
-//
-
 #ifndef OWSTREAMRECORDEX_VISIONWORKER_H
 #define OWSTREAMRECORDEX_VISIONWORKER_H
 
-#include "MFindWindow.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -18,23 +13,24 @@
 class VisionWorker : public QObject {
     Q_OBJECT
 private:
+    static BOOL CALLBACK enumWindowsProc(__in HWND hWnd, __in LPARAM lParam);
     static void replace(std::string& str, const std::string& from, const std::string& to);
-    ConfigController * ctrl;
+    ConfigController *ctrl;
     int width;
     int height;
     bool obs_mode;
     BITMAPFILEHEADER   bmfHeader{};
     BITMAPINFOHEADER   bi{};
-    HANDLE hMapFile;
-    HWND targetHWND;
-    HDC hdcWindow;
-    HDC hdcMemDC;
-    HBITMAP hbmScreen;
+    HANDLE hMapFile = nullptr;
+    HWND targetHWND = nullptr;
+    HDC hdcWindow = nullptr;
+    HDC hdcMemDC = nullptr;
+    HBITMAP hbmScreen = nullptr;
     BITMAP bmpScreen{};
     int size;
-    uint32_t * pBuf;
-    uint32_t * scrData;
-    Pix *img;
+    uint32_t *pBuf = nullptr;
+    uint32_t *scrData = nullptr;
+    Pix *img = nullptr;
     void SHMEM2PIX();
     void SCR2PIX();
     void analyze();

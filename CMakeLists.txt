@@ -21,4 +21,4 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
     SET(APPTYPE WIN32)
 endif()
 
-add_executable(OWStreamRecordEx ${APPTYPE} src/main.cpp src/mainwindow.cpp src/mainwindow.h src/mainwindow.ui res/owsrx.rc res/icon.ico src/VisionWorker.cpp src/VisionWorker.h src/MFindWindow.cpp src/MFindWindow.h src/ConfigController.cpp src/ConfigController.h)
+add_executable(OWStreamRecordEx ${APPTYPE} src/main.cpp src/mainwindow.cpp src/mainwindow.h src/mainwindow.ui res/owsrx.rc res/icon.ico src/VisionWorker.cpp src/ConfigController.cpp src/ConfigController.h)
