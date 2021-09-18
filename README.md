@@ -18,3 +18,7 @@ Then go to OBS -> Overwatch source -> Filters -> Add OWStreamRecordExRec filter 
 
 
 Remember it's first release ever, so many bugs here
+
+So here i got new release for ya
+
+![new](https://i.imgur.com/xAjK5F5.png)
