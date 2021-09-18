@@ -48,7 +48,6 @@ private:
 public:
     explicit VisionWorker();
     ~VisionWorker() override;
-    bool working;
     MPIC* mPic;
     BYTE* scrData = nullptr;
 
@@ -60,7 +59,6 @@ signals:
     void updTank(int sr);
     void updDPS(int sr);
     void updSupport(int sr);
-    void finished();
 };
 
 

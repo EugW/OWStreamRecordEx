@@ -285,7 +285,6 @@ DUPL_RETURN OUTPUTMANAGER::UpdateApplicationWindow(LPVOID px)
     ((MPIC*)px)->rsc.RowPitch = 0;
     ((MPIC*)px)->rsc.DepthPitch = 0;
     ((MPIC*)px)->rsc.pData = nullptr;
-    ((MPIC*)px)->startupWait = true;
     hr = m_DeviceContext->Map(m_StagingSurf, 0, D3D11_MAP_READ, 0, &((MPIC*)px)->rsc);
     ((MPIC*)px)->startupWait = false;
     while (((MPIC*)px)->wait) {

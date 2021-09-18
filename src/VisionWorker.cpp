@@ -139,7 +139,7 @@ void VisionWorker::replace(std::string& str, const std::string& from, const std:
 }
 
 void VisionWorker::process() {
-    while (working) {
+    while (true) {
         switch (mode) {
         case 0: {
             DATA2PIX();
@@ -152,9 +152,6 @@ void VisionWorker::process() {
             break;
         }
         case 2: {
-            while (mPic->startupWait) {
-                Sleep(0);
-            }
             scrData = (BYTE*)mPic->rsc.pData;
             DATA2PIX();
             mPic->wait = false;
@@ -167,13 +164,11 @@ void VisionWorker::process() {
         pixDestroy(&img);
         Sleep(ctrl->config.delay);
     }
-    finished();
 }
 
 VisionWorker::VisionWorker() {
     ctrl = ConfigController::getInstance();
     mode = ctrl->config.mode;
-    working = false;
     numApi = new tesseract::TessBaseAPI();
     numApi->Init(nullptr, "eng");
     bi.biSize = sizeof(BITMAPINFOHEADER);
@@ -246,10 +241,12 @@ VisionWorker::VisionWorker() {
         }
         mPic->startupWait = true;
         CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)startDup, (LPVOID)mPic, 0, nullptr);
+        while (mPic->startupWait) {
+            Sleep(0);
+        }
         break;
     }
     }
-    working = true;
 }
 
 VisionWorker::~VisionWorker() {

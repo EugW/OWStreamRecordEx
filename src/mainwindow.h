@@ -31,15 +31,12 @@ private:
     void startService();
     bool running = false;
 private slots:
-    void on_pushButtonStartService_clicked();
-    void on_pushButtonStopService_clicked();
     void on_pushButtonApplySettings_clicked();
 public slots:
     void updImage(Pix *pix);
     void updTnk(int sr);
     void updDmg(int sr);
     void updSup(int sr);
-    void workerDeath();
 private:
     QGraphicsScene *graphicsScene;
     QGraphicsPixmapItem *pixmap;

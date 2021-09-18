@@ -25,14 +25,6 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::on_pushButtonStartService_clicked() {
-    startService();
-}
-
-void MainWindow::on_pushButtonStopService_clicked() {
-    worker->working=false;
-}
-
 void MainWindow::on_pushButtonApplySettings_clicked() {
     auto ctrl = ConfigController::getInstance();
     ctrl->config.delay = ui->lineEditDelay->text().toInt();
@@ -49,11 +41,6 @@ void MainWindow::updImage(Pix *pix) {
     pixmap->setPixmap(QPixmap::fromImage(image.rgbSwapped()));
     pixDestroy(&swpPx);
     pixDestroy(&pix);
-}
-
-void MainWindow::workerDeath() {
-    //log entry death
-    running = false;
 }
 
 void MainWindow::updTnk(int sr) {
@@ -79,10 +66,6 @@ void MainWindow::startService() {
     connect(worker, SIGNAL(updTank(int)), this, SLOT(updTnk(int)));
     connect(worker, SIGNAL(updDPS(int)), this, SLOT(updDmg(int)));
     connect(worker, SIGNAL(updSupport(int)), this, SLOT(updSup(int)));
-    connect(worker, SIGNAL (finished()), thread, SLOT (quit()));
-    connect(worker, SIGNAL (finished()), worker, SLOT (deleteLater()));
-    connect(thread, SIGNAL (finished()), thread, SLOT (deleteLater()));
-    connect(worker, SIGNAL(finished()), this, SLOT(workerDeath()));
     thread->start();
     running = true;
 }
