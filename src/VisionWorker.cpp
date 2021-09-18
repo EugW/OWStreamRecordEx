@@ -141,7 +141,9 @@ void VisionWorker::process() {
             break;
         }
         case 2: {
-            while (mPic->startupWait) {}
+            while (mPic->startupWait) {
+                Sleep(0);
+            }
             scrData = (BYTE*)mPic->rsc.pData;
             DATA2PIX();
             mPic->wait = false;

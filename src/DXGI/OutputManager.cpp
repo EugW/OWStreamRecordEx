@@ -288,8 +288,9 @@ DUPL_RETURN OUTPUTMANAGER::UpdateApplicationWindow(LPVOID px)
     ttt->rsc.pData = nullptr;
     ttt->startupWait = true;
     hr = m_DeviceContext->Map(m_StagingSurf, 0, D3D11_MAP_READ, 0, &ttt->rsc);
-    ttt->startupWait = false;
-    while (ttt->wait) {}
+    while (((MPIC*)px)->wait) {
+        Sleep(0);
+    }
     m_DeviceContext->Unmap(m_StagingSurf, 0);
     // Release keyed mutex
     hr = m_KeyMutex->ReleaseSync(0);
