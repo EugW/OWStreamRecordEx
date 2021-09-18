@@ -26,8 +26,8 @@ private:
     QImage image;
     u_char *imgData;
     Ui::MainWindow *ui;
-    VisionWorker *worker{};
-    QThread *thread{};
+    VisionWorker *worker;
+    QThread *thread;
     void startService();
     bool running = false;
 private slots:

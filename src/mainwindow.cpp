@@ -2,6 +2,7 @@
 #include <iostream>
 #include <QMainWindow>
 #include <QThread>
+#include "MDXGI.h"
 
 MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent),ui(new Ui::MainWindow) {
     ui->setupUi(this);
@@ -12,7 +13,8 @@ MainWindow::MainWindow(QWidget *parent) :QMainWindow(parent),ui(new Ui::MainWind
     pixmap = graphicsScene->addPixmap(QPixmap::fromImage(image));
     auto controller = ConfigController::getInstance();
     ui->lineEditDelay->setText(QString::number(controller->config.delay));
-    ui->checkBoxOBS->setChecked(controller->config.obs);
+    ui->comboBoxMode->addItems(QStringList() << "OBS" << "GDI+" << "DXGI");
+    ui->comboBoxMode->setCurrentIndex(controller->config.mode);
     ui->checkBoxPreview->setChecked(controller->config.preview);
     ui->lineEditPath->setText(QString::fromStdString(controller->config.path));
     ui->textEditPlaceholder->setText(QString::fromStdString(controller->config.placeholder));
@@ -34,7 +36,7 @@ void MainWindow::on_pushButtonStopService_clicked() {
 void MainWindow::on_pushButtonApplySettings_clicked() {
     auto ctrl = ConfigController::getInstance();
     ctrl->config.delay = ui->lineEditDelay->text().toInt();
-    ctrl->config.obs = ui->checkBoxOBS->isChecked();
+    ctrl->config.mode = ui->comboBoxMode->currentIndex();
     ctrl->config.preview = ui->checkBoxPreview->isChecked();
     ctrl->config.path = ui->lineEditPath->text().toStdString();
     ctrl->config.placeholder = ui->textEditPlaceholder->toPlainText().toStdString();

@@ -185,7 +185,7 @@
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>47</width>
+        <width>70</width>
         <height>20</height>
        </rect>
       </property>
@@ -196,7 +196,7 @@
      <widget class="QLineEdit" name="lineEditDelay">
       <property name="geometry">
        <rect>
-        <x>70</x>
+        <x>90</x>
         <y>10</y>
         <width>110</width>
         <height>20</height>
@@ -216,25 +216,12 @@
        <string>Save Apply</string>
       </property>
      </widget>
-     <widget class="QCheckBox" name="checkBoxOBS">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>42</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>OBS</string>
-      </property>
-     </widget>
      <widget class="QCheckBox" name="checkBoxPreview">
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>50</y>
-        <width>60</width>
+        <y>70</y>
+        <width>70</width>
         <height>20</height>
        </rect>
       </property>
@@ -246,7 +233,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>70</y>
+        <y>100</y>
         <width>31</width>
         <height>20</height>
        </rect>
@@ -259,8 +246,8 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>90</y>
-        <width>171</width>
+        <y>120</y>
+        <width>190</width>
         <height>20</height>
        </rect>
       </property>
@@ -288,6 +275,29 @@
        </rect>
       </property>
      </widget>
+     <widget class="QComboBox" name="comboBoxMode">
+      <property name="geometry">
+       <rect>
+        <x>90</x>
+        <y>40</y>
+        <width>110</width>
+        <height>20</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>70</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Mode:</string>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>
@@ -297,7 +307,7 @@
      <x>0</x>
      <y>0</y>
      <width>600</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuHello">
