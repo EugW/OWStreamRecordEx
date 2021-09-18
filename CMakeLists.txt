@@ -16,9 +16,9 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 file(GLOB OWSRX_DEP CONFIGURE_DEPENDS "src/*.cpp" "src/*.h" "src/DXGI/*.cpp" "src/DXGI/*.h")
 
-#if(CMAKE_BUILD_TYPE STREQUAL "Release")
-#    SET(APPTYPE WIN32)
-#endif()
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    SET(APPTYPE WIN32)
+endif()
 
 add_executable(OWStreamRecordEx ${APPTYPE} ${OWSRX_DEP} src/mainwindow.ui res/owsrx.rc res/icon.ico)
 
