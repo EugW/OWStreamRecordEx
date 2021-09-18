@@ -36,7 +36,6 @@ private:
     void analyze();
     Box* srBoxes[3]{boxCreate(492, 542, 51, 36), boxCreate(772, 542, 51, 36), boxCreate(1052, 542, 51, 36)};
     tesseract::TessBaseAPI * numApi;
-    std::string names[3]{"tank", "damage", "support"};
     struct stats {
         int sr;
         int wins;

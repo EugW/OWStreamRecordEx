@@ -51,69 +51,71 @@ void VisionWorker::analyze() {
             pixWritePng("dps.png", targetPix, 0.0);
         if (i == 2)
             pixWritePng("support.png", targetPix, 0.0);*/
-            numApi->SetImage(targetPix);
-            char* lll = numApi->GetUTF8Text();
-            int res = 0;
-            bool nan = false;
-            numApi->Clear();
-            for (int j = 0; j < 4; j++) {
-                if (lll[j] >= '0' && lll[j] <= '9') {
-                    res += pow(10, 3 - j) * ((long long)lll[j] - '0');
+        numApi->SetImage(targetPix);
+        char* lll = numApi->GetUTF8Text();
+        numApi->Clear();
+        pixDestroy(&targetPix);
+        int res = 0;
+        bool nan = false;
+        for (int j = 0; j < 4; j++) {
+            if (lll[j] >= '0' && lll[j] <= '9') {
+                res += pow(10, 3 - j) * ((long long)lll[j] - '0');
+            }
+            else {
+                nan = true;
+                break;
+            }
+        }
+        free(lll);
+        if (nan)
+            continue;
+        switch (i) {
+        case 0:
+            if (tnk.sr == 0) {
+                tnk.sr = res;
+                updTank(res);
+            }
+            if (res != tnk.sr) {
+                updTank(res);
+                if (res > tnk.sr) {
+                    tnk.wins++;
                 }
-                else {
-                    nan = true;
-                    break;
+                else if (res < tnk.sr) {
+                    tnk.losses++;
                 }
             }
-            if (nan)
-                continue;
-            free(lll);
-        switch (i) {
-            case 0:
-                if (tnk.sr == 0) {
-                    tnk.sr = res;
-                    updTank(res);
+            break;
+        case 1:
+            if (dmg.sr == 0) {
+                dmg.sr = res;
+                updDPS(res);
+            }
+            if (res != dmg.sr) {
+                updDPS(res);
+                if (res > dmg.sr) {
+                    dmg.wins++;
                 }
-                if (res != tnk.sr) {
-                    updTank(res);
-                    if (res > tnk.sr) {
-                        tnk.wins++;
-                    } else if (res < tnk.sr) {
-                        tnk.losses++;
-                    }
+                else if (res < dmg.sr) {
+                    dmg.losses++;
                 }
-                break;
-            case 1:
-                if (dmg.sr == 0) {
-                    dmg.sr = res;
-                    updDPS(res);
+            }
+            break;
+        case 2:
+            if (sup.sr == 0) {
+                sup.sr = res;
+                updSupport(res);
+            }
+            if (res != sup.sr) {
+                updSupport(res);
+                if (res > sup.sr) {
+                    sup.wins++;
                 }
-                if (res != dmg.sr) {
-                    updDPS(res);
-                    if (res > dmg.sr) {
-                        dmg.wins++;
-                    } else if (res < dmg.sr) {
-                        dmg.losses++;
-                    }
+                else if (res < sup.sr) {
+                    sup.losses++;
                 }
-                break;
-            case 2:
-                if (sup.sr == 0) {
-                    sup.sr = res;
-                    updSupport(res);
-                }
-                if (res != sup.sr) {
-                    updSupport(res);
-                    if (res > sup.sr) {
-                        sup.wins++;
-                    } else if (res < sup.sr) {
-                        sup.losses++;
-                    }
-                }
-                break;
-            default:;
+            }
+            break;
         }
-        pixDestroy(&targetPix);
     }
     auto str = ctrl->config.placeholder;
     replace(str, "%tW%", to_string(tnk.wins));
