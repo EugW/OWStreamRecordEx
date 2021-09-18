@@ -6,44 +6,37 @@ BOOL CALLBACK VisionWorker::enumWindowsProc(__in HWND hWnd, __in LPARAM lParam) 
     int length = GetWindowTextLength(hWnd);
     if (length == 0)
         return true;
-    auto buffer = new TCHAR[512];
+    TCHAR buffer[512];
     memset( buffer, 0, ( 512 ) * sizeof( TCHAR ) );
     GetWindowText( hWnd, buffer, 512 );
-    auto windowTitle = std::string(buffer);
+    auto windowTitleTmp = std::wstring(buffer);
+    auto windowTitle = std::string(windowTitleTmp.begin(), windowTitleTmp.end());
     DWORD proc = NULL;
     GetWindowThreadProcessId(hWnd, &proc);
     GetModuleFileNameEx(OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, proc), nullptr, buffer, 512);
-    auto filePath = std::string(buffer);
+    auto filePathTmp = std::wstring(buffer);
+    auto filePath = std::string(filePathTmp.begin(), filePathTmp.end());
     auto pos = filePath.find_last_of('\\');
     auto fileName = filePath.substr(pos + 1);
-    delete[] buffer;
     if (windowTitle == "Overwatch" && fileName == "Overwatch.exe") {
-        reinterpret_cast<VisionWorker *>(lParam)->targetHWND = hWnd;
+        ((VisionWorker*)lParam)->targetHWND = hWnd;
         return false;
     }
     return true;
 }
 
-void VisionWorker::SHMEM2PIX() {
+void VisionWorker::DATA2PIX() {
     if (img)
         pixDestroy(&img);
-    auto tmp = (uint8_t *)malloc(sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + size);
+    size_t mlcSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + size;
+    auto tmp = (uint8_t*)malloc(mlcSize);
+    if (tmp == nullptr || mlcSize < 14) {
+        printf("Couldn't alloc memory (DATA2PIX)");
+        return;
+    }
     memcpy(tmp, &bmfHeader, sizeof(BITMAPFILEHEADER));
-    memcpy(&tmp[sizeof(BITMAPFILEHEADER)], &bi, sizeof(BITMAPINFOHEADER));
-    memcpy(&tmp[sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER)], &pBuf[2], size);
-    img = pixReadMemBmp(tmp, sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + size);
-    free(tmp);
-}
-
-void VisionWorker::SCR2PIX() {
-    if (img)
-        pixDestroy(&img);
-    auto tmp = (uint8_t *)malloc(sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + size);
-    BitBlt(hdcMemDC,0,0,width, height,hdcWindow,0,0,SRCCOPY);
-    GetDIBits(hdcWindow, hbmScreen, 0, bmpScreen.bmHeight, scrData, reinterpret_cast<LPBITMAPINFO>(&bi), DIB_RGB_COLORS);
-    memcpy(tmp, &bmfHeader, sizeof(BITMAPFILEHEADER));
-    memcpy(&tmp[sizeof(BITMAPFILEHEADER)], &bi, sizeof(BITMAPINFOHEADER));
-    memcpy(&tmp[sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER)], scrData, size);
+    memcpy(tmp + sizeof(BITMAPFILEHEADER), &bi, sizeof(BITMAPINFOHEADER));
+    memcpy(tmp + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER), scrData, size);
     img = pixReadMemBmp(tmp, sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + size);
     free(tmp);
 }
@@ -51,68 +44,67 @@ void VisionWorker::SCR2PIX() {
 void VisionWorker::analyze() {
     out.open(ctrl->config.path, std::ios::trunc | std::ios::out);
     for (int i = 0; i < 3; i++) {
-        auto preTargetPix = pixClipRectangle(img, roleBoxes[i], nullptr);
-        textApi->SetImage(preTargetPix);
-        std::string roleNM = ((std::string)textApi->GetUTF8Text()).substr(0, names[i].size());
-        std::transform(roleNM.begin(), roleNM.end(), roleNM.begin(),
-                       [](unsigned char c){ return std::tolower(c); });
-        if (roleNM == names[i]) {
-            auto targetPix = pixClipRectangle(img, srBoxes[i], nullptr);
-            numApi->SetImage(targetPix);
-            int res = std::stoi(numApi->GetUTF8Text());
-            //
-            //printf("%s: %d\n", names[i].c_str(), res);
-            switch (i) {
-                case 0:
-                    if (tnk.sr == 0) {
-                        tnk.sr = res;
-                        updTank(res);
-                    }
-                    if (res != tnk.sr) {
-                        updTank(res);
-                        if (res > tnk.sr) {
-                            tnk.wins++;
-                        } else if (res < tnk.sr) {
-                            tnk.losses++;
-                        }
-                    }
-                    //pixWritePng("tank.png", preTargetPix, 0.0);
-                    break;
-                case 1:
-                    if (dmg.sr == 0) {
-                        dmg.sr = res;
-                        updDPS(res);
-                    }
-                    if (res != dmg.sr) {
-                        updDPS(res);
-                        if (res > dmg.sr) {
-                            dmg.wins++;
-                        } else if (res < dmg.sr) {
-                            dmg.losses++;
-                        }
-                    }
-                    //pixWritePng("dps.png", preTargetPix, 0.0);
-                    break;
-                case 2:
-                    if (sup.sr == 0) {
-                        sup.sr = res;
-                        updSupport(res);
-                    }
-                    if (res != sup.sr) {
-                        updSupport(res);
-                        if (res > sup.sr) {
-                            sup.wins++;
-                        } else if (res < sup.sr) {
-                            sup.losses++;
-                        }
-                    }
-                    //pixWritePng("support.png", preTargetPix, 0.0);
-                    break;
-                default:;
-            }
-            pixDestroy(&targetPix);
+        auto targetPix = pixClipRectangle(img, srBoxes[i], nullptr);
+        /*if (i == 0)
+            pixWritePng("tank.png", targetPix, 0.0);
+        if (i == 1)
+            pixWritePng("dps.png", targetPix, 0.0);
+        if (i == 2)
+            pixWritePng("support.png", targetPix, 0.0);*/
+        numApi->SetImage(targetPix);
+        int res = 0;
+        try {
+            res = std::stoi(numApi->GetUTF8Text());
         }
-        pixDestroy(&preTargetPix);
+        catch (...) {
+            continue;
+        }
+        switch (i) {
+            case 0:
+                if (tnk.sr == 0) {
+                    tnk.sr = res;
+                    updTank(res);
+                }
+                if (res != tnk.sr) {
+                    updTank(res);
+                    if (res > tnk.sr) {
+                        tnk.wins++;
+                    } else if (res < tnk.sr) {
+                        tnk.losses++;
+                    }
+                }
+                break;
+            case 1:
+                if (dmg.sr == 0) {
+                    dmg.sr = res;
+                    updDPS(res);
+                }
+                if (res != dmg.sr) {
+                    updDPS(res);
+                    if (res > dmg.sr) {
+                        dmg.wins++;
+                    } else if (res < dmg.sr) {
+                        dmg.losses++;
+                    }
+                }
+                break;
+            case 2:
+                if (sup.sr == 0) {
+                    sup.sr = res;
+                    updSupport(res);
+                }
+                if (res != sup.sr) {
+                    updSupport(res);
+                    if (res > sup.sr) {
+                        sup.wins++;
+                    } else if (res < sup.sr) {
+                        sup.losses++;
+                    }
+                }
+                break;
+            default:;
+        }
+        pixDestroy(&targetPix);
     }
     auto str = ctrl->config.placeholder;
     replace(str, "%tW%", to_string(tnk.wins));
@@ -136,31 +128,41 @@ void VisionWorker::replace(std::string& str, const std::string& from, const std:
 }
 
 void VisionWorker::process() {
-    int i = 0;
     while (working) {
-        if (obs_mode) {
-            SHMEM2PIX();
-        } else {
-            SCR2PIX();
+        switch (mode) {
+        case 0: {
+            DATA2PIX();
+            break;
+        }
+        case 1: {
+            BitBlt(hdcMemDC, 0, 0, width, height, hdcWindow, 0, 0, SRCCOPY);
+            GetDIBits(hdcWindow, hbmScreen, 0, bmpScreen.bmHeight, scrData, reinterpret_cast<LPBITMAPINFO>(&bi), DIB_RGB_COLORS);
+            DATA2PIX();
+            break;
+        }
+        case 2: {
+            while (mPic->startupWait) {}
+            scrData = (BYTE*)mPic->rsc.pData;
+            DATA2PIX();
+            mPic->wait = false;
+            break;
+        }
         }
         if (ctrl->config.preview)
             updPreview(pixScaleToSize(img, 320, 180));
         analyze();
         pixDestroy(&img);
         Sleep(ctrl->config.delay);
-        i++;
     }
     finished();
 }
 
 VisionWorker::VisionWorker() {
     ctrl = ConfigController::getInstance();
-    obs_mode = ctrl->config.obs;
+    mode = ctrl->config.mode;
     working = false;
     numApi = new tesseract::TessBaseAPI();
-    numApi->Init(nullptr, "BigNoodleTooOblique");
-    textApi = new tesseract::TessBaseAPI();
-    textApi->Init(nullptr, "eng");
+    numApi->Init(nullptr, "eng");
     bi.biSize = sizeof(BITMAPINFOHEADER);
     bi.biPlanes = 1;
     bi.biBitCount = 24;
@@ -172,13 +174,14 @@ VisionWorker::VisionWorker() {
     bi.biClrImportant = 0;
     bmfHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
     bmfHeader.bfType = 0x4D42;
-    if (obs_mode) {
-        hMapFile = OpenFileMapping(FILE_MAP_READ, FALSE, "OWStreamRecordExRec:SHMEM");
+    switch (mode) {
+    case 0: {
+        hMapFile = OpenFileMapping(FILE_MAP_READ, FALSE, L"OWStreamRecordExRec:SHMEM");
         if (hMapFile == nullptr) {
             printf("Could not open file mapping object.\n");
             return;
         }
-        pBuf = (uint32_t *)MapViewOfFile(hMapFile, FILE_MAP_READ, 0, 0, 0);
+        pBuf = (uint32_t*)MapViewOfFile(hMapFile, FILE_MAP_READ, 0, 0, 0);
         if (pBuf == nullptr) {
             printf("Could not map view of file.\n");
             CloseHandle(hMapFile);
@@ -189,8 +192,11 @@ VisionWorker::VisionWorker() {
         bi.biWidth = width;
         bi.biHeight = -height;
         size = width * height * 3;
-    } else {
-        EnumWindows(enumWindowsProc, reinterpret_cast<LPARAM>(this));
+        scrData = (BYTE*)pBuf + 2;
+        break;
+    }
+    case 1: {
+        EnumWindows(enumWindowsProc, (LPARAM)this);
         if (targetHWND == nullptr) {
             printf("Could not find window.\n");
             return;
@@ -199,45 +205,71 @@ VisionWorker::VisionWorker() {
         hdcMemDC = CreateCompatibleDC(hdcWindow);
         RECT rcClient;
         GetClientRect(targetHWND, &rcClient);
-        hbmScreen = CreateCompatibleBitmap(hdcWindow, rcClient.right-rcClient.left, rcClient.bottom-rcClient.top);
-        SelectObject(hdcMemDC,hbmScreen);
-        GetObject(hbmScreen,sizeof(BITMAP),&bmpScreen);
+        hbmScreen = CreateCompatibleBitmap(hdcWindow, rcClient.right - rcClient.left, rcClient.bottom - rcClient.top);
+        SelectObject(hdcMemDC, hbmScreen);
+        GetObject(hbmScreen, sizeof(BITMAP), &bmpScreen);
         width = bmpScreen.bmWidth;
         height = bmpScreen.bmHeight;
         bi.biWidth = width;
         bi.biHeight = height;
         size = width * height * 3;
-        scrData = (uint32_t *)malloc(size);
-        //printf("SZ:%ld,%ld\n", bmpScreen.bmWidth, bmpScreen.bmHeight);
+        scrData = (BYTE*)malloc(size);
+        break;
+    }
+    case 2: {
+        RECT desktop;
+        const HWND hDesktop = GetDesktopWindow();
+        GetWindowRect(hDesktop, &desktop);
+        width = desktop.right;
+        height = desktop.bottom;
+        bi.biBitCount = 32;
+        bi.biWidth = width;
+        bi.biHeight = -height;
+        size = width * height * 4;
+        scrData = (BYTE*)malloc(size);
+        mPic = (MPIC*)malloc(sizeof(MPIC));
+        if (mPic == nullptr) {
+            printf("Couldn't alloc memory (INIT)\n");
+            break;
+        }
+        mPic->startupWait = true;
+        CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)startDup, (LPVOID)mPic, 0, nullptr);
+        break;
+    }
     }
     working = true;
-    //printf("init\n");
 }
 
 VisionWorker::~VisionWorker() {
-    if (obs_mode) {
+    switch (mode) {
+    case 0: {
         if (pBuf != nullptr)
             UnmapViewOfFile(pBuf);
         if (hMapFile != nullptr)
             CloseHandle(hMapFile);
-    } else {
+        break;
+    }
+    case 1: {
         if (hbmScreen != nullptr)
             DeleteObject(hbmScreen);
         if (hdcMemDC != nullptr)
             DeleteObject(hdcMemDC);
         if (targetHWND != nullptr && hdcWindow != nullptr)
-            ReleaseDC(targetHWND,hdcWindow);
+            ReleaseDC(targetHWND, hdcWindow);
         if (scrData != nullptr)
             free(scrData);
+        break;
     }
-    if (img != nullptr)
+    case 2: {
+        if (mPic != nullptr) 
+            free(mPic);
+        break;
+    }
+    }
+    if (img)
         pixDestroy(&img);
     boxDestroy(&srBoxes[0]);
     boxDestroy(&srBoxes[1]);
     boxDestroy(&srBoxes[2]);
-    boxDestroy(&roleBoxes[0]);
-    boxDestroy(&roleBoxes[1]);
-    boxDestroy(&roleBoxes[2]);
     numApi->End();
-    textApi->End();
 }
