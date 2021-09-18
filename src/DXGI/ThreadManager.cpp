@@ -13,7 +13,6 @@ THREADMANAGER::THREADMANAGER() : m_ThreadCount(0),
                                  m_ThreadHandles(nullptr),
                                  m_ThreadData(nullptr)
 {
-    RtlZeroMemory(&m_PtrInfo, sizeof(m_PtrInfo));
 }
 
 THREADMANAGER::~THREADMANAGER()
@@ -26,12 +25,6 @@ THREADMANAGER::~THREADMANAGER()
 //
 void THREADMANAGER::Clean()
 {
-    if (m_PtrInfo.PtrShapeBuffer)
-    {
-        delete [] m_PtrInfo.PtrShapeBuffer;
-        m_PtrInfo.PtrShapeBuffer = nullptr;
-    }
-    RtlZeroMemory(&m_PtrInfo, sizeof(m_PtrInfo));
 
     if (m_ThreadHandles)
     {
@@ -125,7 +118,6 @@ DUPL_RETURN THREADMANAGER::Initialize(INT SingleOutput, UINT OutputCount, HANDLE
         m_ThreadData[i].TexSharedHandle = SharedHandle;
         m_ThreadData[i].OffsetX = DesktopDim->left;
         m_ThreadData[i].OffsetY = DesktopDim->top;
-        m_ThreadData[i].PtrInfo = &m_PtrInfo;
 
         RtlZeroMemory(&m_ThreadData[i].DxRes, sizeof(DX_RESOURCES));
         Ret = InitializeDx(&m_ThreadData[i].DxRes);
@@ -236,14 +228,6 @@ DUPL_RETURN THREADMANAGER::InitializeDx(_Out_ DX_RESOURCES* Data)
     }
 
     return DUPL_RETURN_SUCCESS;
-}
-
-//
-// Getter for the PTR_INFO structure
-//
-PTR_INFO* THREADMANAGER::GetPointerInfo()
-{
-    return &m_PtrInfo;
 }
 
 //

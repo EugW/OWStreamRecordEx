@@ -42,19 +42,6 @@ DUPL_RETURN ProcessFailure(_In_opt_ ID3D11Device* Device, _In_ LPCWSTR Str, _In_
 
 void DisplayMsg(_In_ LPCWSTR Str, _In_ LPCWSTR Title, HRESULT hr);
 
-//
-// Holds info about the pointer/cursor
-//
-typedef struct _PTR_INFO
-{
-    _Field_size_bytes_(BufferSize) BYTE* PtrShapeBuffer;
-    DXGI_OUTDUPL_POINTER_SHAPE_INFO ShapeInfo;
-    POINT Position;
-    bool Visible;
-    UINT BufferSize;
-    UINT WhoUpdatedPositionLast;
-    LARGE_INTEGER LastTimeStamp;
-} PTR_INFO;
 
 //
 // Structure that holds D3D resources not directly tied to any one thread
@@ -87,7 +74,6 @@ typedef struct _THREAD_DATA
     UINT Output;
     INT OffsetX;
     INT OffsetY;
-    PTR_INFO* PtrInfo;
     DX_RESOURCES DxRes;
 } THREAD_DATA;
 
@@ -111,5 +97,12 @@ typedef struct _VERTEX
     DirectX::XMFLOAT3 Pos;
     DirectX::XMFLOAT2 TexCoord;
 } VERTEX;
+
+typedef struct {
+    D3D11_MAPPED_SUBRESOURCE rsc;
+    int height;
+    bool wait;
+    bool startupWait;
+} MPIC;
 
 #endif
