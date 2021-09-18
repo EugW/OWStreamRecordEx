@@ -51,14 +51,23 @@ void VisionWorker::analyze() {
             pixWritePng("dps.png", targetPix, 0.0);
         if (i == 2)
             pixWritePng("support.png", targetPix, 0.0);*/
-        numApi->SetImage(targetPix);
-        int res = 0;
-        try {
-            res = std::stoi(numApi->GetUTF8Text());
-        }
-        catch (...) {
-            continue;
-        }
+            numApi->SetImage(targetPix);
+            char* lll = numApi->GetUTF8Text();
+            int res = 0;
+            bool nan = false;
+            numApi->Clear();
+            for (int j = 0; j < 4; j++) {
+                if (lll[j] >= '0' && lll[j] <= '9') {
+                    res += pow(10, 3 - j) * ((long long)lll[j] - '0');
+                }
+                else {
+                    nan = true;
+                    break;
+                }
+            }
+            if (nan)
+                continue;
+            free(lll);
         switch (i) {
             case 0:
                 if (tnk.sr == 0) {
@@ -228,7 +237,6 @@ VisionWorker::VisionWorker() {
         bi.biWidth = width;
         bi.biHeight = -height;
         size = width * height * 4;
-        scrData = (BYTE*)malloc(size);
         mPic = (MPIC*)malloc(sizeof(MPIC));
         if (mPic == nullptr) {
             printf("Couldn't alloc memory (INIT)\n");

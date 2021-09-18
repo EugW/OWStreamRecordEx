@@ -280,14 +280,14 @@ DUPL_RETURN OUTPUTMANAGER::UpdateApplicationWindow(LPVOID px)
 
     // Got mutex, so draw
     m_DeviceContext->CopyResource(m_StagingSurf, m_SharedSurf);
-    MPIC* ttt = (MPIC*)px;
-    ttt->height = height;
-    ttt->wait = true;
-    ttt->rsc.RowPitch = 0;
-    ttt->rsc.DepthPitch = 0;
-    ttt->rsc.pData = nullptr;
-    ttt->startupWait = true;
-    hr = m_DeviceContext->Map(m_StagingSurf, 0, D3D11_MAP_READ, 0, &ttt->rsc);
+    ((MPIC*)px)->height = height;
+    ((MPIC*)px)->wait = true;
+    ((MPIC*)px)->rsc.RowPitch = 0;
+    ((MPIC*)px)->rsc.DepthPitch = 0;
+    ((MPIC*)px)->rsc.pData = nullptr;
+    ((MPIC*)px)->startupWait = true;
+    hr = m_DeviceContext->Map(m_StagingSurf, 0, D3D11_MAP_READ, 0, &((MPIC*)px)->rsc);
+    ((MPIC*)px)->startupWait = false;
     while (((MPIC*)px)->wait) {
         Sleep(0);
     }
