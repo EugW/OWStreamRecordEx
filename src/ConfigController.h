@@ -14,7 +14,7 @@ using namespace nlohmann;
 class ConfigController {
 public:
     struct Config {
-        bool obs;
+        int mode;
         string path;
         int delay;
         bool preview;
