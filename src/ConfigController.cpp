@@ -1,8 +1,8 @@
 #include "ConfigController.h"
 
-ConfigController * ConfigController::instance = nullptr;
+ConfigController* ConfigController::instance = nullptr;
 
-ConfigController * ConfigController::getInstance() {
+ConfigController* ConfigController::getInstance() {
     if (instance == nullptr) {
         instance = new ConfigController();
     }

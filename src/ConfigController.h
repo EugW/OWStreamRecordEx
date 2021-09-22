@@ -23,9 +23,9 @@ public:
     Config config;
     void loadConfig();
     void saveConfig();
-    static ConfigController * getInstance();
+    static ConfigController* getInstance();
 private:
-    static ConfigController * instance;
+    static ConfigController* instance;
     ConfigController();
 };
 

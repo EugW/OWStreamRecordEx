@@ -17,12 +17,12 @@ class VisionWorker : public QObject {
 private:
     static BOOL CALLBACK enumWindowsProc(__in HWND hWnd, __in LPARAM lParam);
     static void replace(std::string& str, const std::string& from, const std::string& to);
-    ConfigController *ctrl;
+    ConfigController* ctrl;
     int width;
     int height;
     int mode;
-    BITMAPFILEHEADER   bmfHeader{};
-    BITMAPINFOHEADER   bi{};
+    BITMAPFILEHEADER bmfHeader{};
+    BITMAPINFOHEADER bi{};
     HANDLE hMapFile = nullptr;
     HWND targetHWND = nullptr;
     HDC hdcWindow = nullptr;
@@ -30,32 +30,33 @@ private:
     HBITMAP hbmScreen = nullptr;
     BITMAP bmpScreen{};
     int size;
-    uint32_t *pBuf = nullptr;
-    Pix *img = nullptr;
+    uint8_t* tmpBuf = nullptr;
+    uint32_t* pBuf = nullptr;
+    Pix* img = nullptr;
     void DATA2PIX();
     void analyze();
-    Box* srBoxes[3]{boxCreate(492, 542, 51, 36), boxCreate(772, 542, 51, 36), boxCreate(1052, 542, 51, 36)};
-    tesseract::TessBaseAPI * numApi;
+    Box* srBoxes[3]{ boxCreate(492, 542, 51, 36), boxCreate(772, 542, 51, 36), boxCreate(1052, 542, 51, 36) };
+    tesseract::TessBaseAPI* numApi;
     struct stats {
         int sr;
         int wins;
         int losses;
     };
-    stats tnk{0, 0, 0};
-    stats dmg{0, 0, 0};
-    stats sup{0, 0, 0};
+    stats tnk{ 0, 0, 0 };
+    stats dmg{ 0, 0, 0 };
+    stats sup{ 0, 0, 0 };
     std::ofstream out;
 public:
     explicit VisionWorker();
     ~VisionWorker() override;
-    MPIC* mPic;
-    BYTE* scrData = nullptr;
+    MPIC* mPic = nullptr;
+    void* scrData = nullptr;
 
 public slots:
     void process();
 
 signals:
-    void updPreview(Pix *pix);
+    void updPreview(Pix* pix);
     void updTank(int sr);
     void updDPS(int sr);
     void updSupport(int sr);
