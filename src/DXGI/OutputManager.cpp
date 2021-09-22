@@ -280,17 +280,19 @@ DUPL_RETURN OUTPUTMANAGER::UpdateApplicationWindow(LPVOID px)
 
     // Got mutex, so draw
     m_DeviceContext->CopyResource(m_StagingSurf, m_SharedSurf);
-    ((MPIC*)px)->height = height;
-    ((MPIC*)px)->wait = true;
-    ((MPIC*)px)->rsc.RowPitch = 0;
-    ((MPIC*)px)->rsc.DepthPitch = 0;
-    ((MPIC*)px)->rsc.pData = nullptr;
-    hr = m_DeviceContext->Map(m_StagingSurf, 0, D3D11_MAP_READ, 0, &((MPIC*)px)->rsc);
-    ((MPIC*)px)->startupWait = false;
-    while (((MPIC*)px)->wait) {
+    D3D11_MAPPED_SUBRESOURCE ss;
+    RtlZeroMemory(&ss, sizeof(D3D11_MAPPED_SUBRESOURCE));
+    hr = m_DeviceContext->Map(m_StagingSurf, 0, D3D11_MAP_READ, 0, &ss);
+    MPIC* pic = (MPIC*)px;
+    pic->data = ss.pData;
+    pic->height = height;
+    pic->wait = true;
+    pic->width = ss.RowPitch / 4;
+    while (pic->wait) {
         Sleep(0);
     }
     m_DeviceContext->Unmap(m_StagingSurf, 0);
+
     // Release keyed mutex
     hr = m_KeyMutex->ReleaseSync(0);
     if (FAILED(hr))

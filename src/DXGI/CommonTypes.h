@@ -99,10 +99,10 @@ typedef struct _VERTEX
 } VERTEX;
 
 typedef struct {
-    D3D11_MAPPED_SUBRESOURCE rsc;
+    void* data;
     int height;
+    int width;
     bool wait;
-    bool startupWait;
 } MPIC;
 
 #endif

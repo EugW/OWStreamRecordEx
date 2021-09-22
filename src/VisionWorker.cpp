@@ -28,22 +28,19 @@ BOOL CALLBACK VisionWorker::enumWindowsProc(__in HWND hWnd, __in LPARAM lParam) 
 void VisionWorker::DATA2PIX() {
     if (img)
         pixDestroy(&img);
-    size_t mlcSize = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + size;
-    auto tmp = (uint8_t*)malloc(mlcSize);
-    if (tmp == nullptr || mlcSize < 14) {
-        printf("Couldn't alloc memory (DATA2PIX)");
+    if (scrData == nullptr)
         return;
-    }
-    memcpy(tmp, &bmfHeader, sizeof(BITMAPFILEHEADER));
-    memcpy(tmp + sizeof(BITMAPFILEHEADER), &bi, sizeof(BITMAPINFOHEADER));
-    memcpy(tmp + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER), scrData, size);
-    img = pixReadMemBmp(tmp, sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + size);
-    free(tmp);
+    memcpy(tmpBuf, &bmfHeader, sizeof(BITMAPFILEHEADER));
+    memcpy(tmpBuf + sizeof(BITMAPFILEHEADER), &bi, sizeof(BITMAPINFOHEADER));
+    memcpy(tmpBuf + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER), scrData, size);
+    img = pixReadMemBmp(tmpBuf, sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + size);
 }
 
 void VisionWorker::analyze() {
     out.open(ctrl->config.path, std::ios::trunc | std::ios::out);
     for (int i = 0; i < 3; i++) {
+        if (!img)
+            break;
         auto targetPix = pixClipRectangle(img, srBoxes[i], nullptr);
         /*if (i == 0)
             pixWritePng("tank.png", targetPix, 0.0);
@@ -53,6 +50,8 @@ void VisionWorker::analyze() {
             pixWritePng("support.png", targetPix, 0.0);*/
         numApi->SetImage(targetPix);
         char* lll = numApi->GetUTF8Text();
+        if (lll == nullptr)
+            break;
         numApi->Clear();
         pixDestroy(&targetPix);
         int res = 0;
@@ -152,13 +151,13 @@ void VisionWorker::process() {
             break;
         }
         case 2: {
-            scrData = (BYTE*)mPic->rsc.pData;
+            scrData = mPic->data;
             DATA2PIX();
             mPic->wait = false;
             break;
         }
         }
-        if (ctrl->config.preview)
+        if (ctrl->config.preview && img)
             updPreview(pixScaleToSize(img, 320, 180));
         analyze();
         pixDestroy(&img);
@@ -200,7 +199,7 @@ VisionWorker::VisionWorker() {
         bi.biWidth = width;
         bi.biHeight = -height;
         size = width * height * 3;
-        scrData = (BYTE*)pBuf + 2;
+        scrData = &pBuf[2];
         break;
     }
     case 1: {
@@ -221,7 +220,7 @@ VisionWorker::VisionWorker() {
         bi.biWidth = width;
         bi.biHeight = height;
         size = width * height * 3;
-        scrData = (BYTE*)malloc(size);
+        scrData = malloc(size);
         break;
     }
     case 2: {
@@ -239,13 +238,18 @@ VisionWorker::VisionWorker() {
             printf("Couldn't alloc memory (INIT)\n");
             break;
         }
-        mPic->startupWait = true;
+        mPic->data = nullptr;
+        mPic->height = 0;
+        mPic->wait = true;
+        mPic->width = 0;
         CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)startDup, (LPVOID)mPic, 0, nullptr);
-        while (mPic->startupWait) {
-            Sleep(0);
-        }
         break;
     }
+    }
+    tmpBuf = (uint8_t*)malloc(sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER) + size);
+    if (tmpBuf == nullptr) {
+        printf("Couldn't alloc memory (TMPBUF)\n");
+        return;
     }
 }
 
@@ -277,6 +281,8 @@ VisionWorker::~VisionWorker() {
     }
     if (img)
         pixDestroy(&img);
+    if (tmpBuf != nullptr)
+        free(tmpBuf);
     boxDestroy(&srBoxes[0]);
     boxDestroy(&srBoxes[1]);
     boxDestroy(&srBoxes[2]);
