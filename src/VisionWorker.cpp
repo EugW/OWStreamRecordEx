@@ -37,83 +37,102 @@ void VisionWorker::DATA2PIX() {
 }
 
 void VisionWorker::analyze() {
+    if (!img)
+        return;
     out.open(ctrl->config.path, std::ios::trunc | std::ios::out);
-    for (int i = 0; i < 3; i++) {
-        if (!img)
-            break;
-        auto targetPix = pixClipRectangle(img, srBoxes[i], nullptr);
-        /*if (i == 0)
-            pixWritePng("tank.png", targetPix, 0.0);
-        if (i == 1)
-            pixWritePng("dps.png", targetPix, 0.0);
-        if (i == 2)
-            pixWritePng("support.png", targetPix, 0.0);*/
-        numApi->SetImage(targetPix);
-        char* lll = numApi->GetUTF8Text();
-        if (lll == nullptr)
-            break;
+    PIX* pixoq = pixClipRectangle(img, oqDetection, nullptr);
+    numApi->SetImage(pixoq);
+    char* test1 = numApi->GetUTF8Text();
+    pixDestroy(&pixoq);
+    numApi->Clear();
+    char ref[33] = "NO ROLE LIMITS ON HERO SELECTION";
+    if (memcmp(test1, &ref, 32) == 0) {
+        //OPEN Q DETECTED
+        PIX* oqq = pixClipRectangle(img, oqSR, nullptr);
+        //pixWritePng("oqq.png", oqq, 0.0);
+        numApi->SetImage(oqq);
+        char* txt = numApi->GetUTF8Text();
+        pixDestroy(&oqq);
         numApi->Clear();
-        pixDestroy(&targetPix);
-        int res = 0;
-        bool nan = false;
-        for (int j = 0; j < 4; j++) {
-            if (lll[j] >= '0' && lll[j] <= '9') {
-                res += pow(10, 3 - j) * ((long long)lll[j] - '0');
+        int res = std::atoi(txt);
+        updOpenQ(res);
+        if (oq.sr == 0) {
+            oq.sr = res;
+        }
+        if (res != oq.sr) {
+            if (res > oq.sr) {
+                oq.wins++;
             }
             else {
-                nan = true;
-                break;
+                oq.losses++;
             }
         }
-        free(lll);
-        if (nan)
-            continue;
-        switch (i) {
-        case 0:
-            if (tnk.sr == 0) {
-                tnk.sr = res;
-                updTank(res);
-            }
-            if (res != tnk.sr) {
-                updTank(res);
-                if (res > tnk.sr) {
-                    tnk.wins++;
+    }
+    else {
+        //OPEN Q NOT DETECTED
+        PIX* pixrq = pixClipRectangle(img, rqDetection, nullptr);
+        numApi->SetImage(pixrq);
+        test1 = numApi->GetUTF8Text();
+        pixDestroy(&pixrq);
+        numApi->Clear();
+        char ref2[12] = "ROLE SELECT";
+        if (memcmp(test1, &ref2, 11) == 0) {
+            //ROLE Q DETECTED
+            for (int i = 0; i < 3; i++) {
+                PIX* targetPix = pixClipRectangle(img, srBoxes[i], nullptr);
+                numApi->SetImage(targetPix);
+                char* txt = numApi->GetUTF8Text();
+                pixDestroy(&targetPix);
+                numApi->Clear();
+                int res = std::atoi(txt);
+                switch (i) {
+                case 0: {
+                    updTank(res);
+                    if (tnk.sr == 0) {
+                        tnk.sr = res;
+                    }
+                    if (res != tnk.sr) {
+                        if (res > tnk.sr) {
+                            tnk.wins++;
+                        }
+                        else {
+                            tnk.losses++;
+                        }
+                    }
+                    break;
                 }
-                else if (res < tnk.sr) {
-                    tnk.losses++;
+                case 1: {
+                    updDPS(res);
+                    if (dmg.sr == 0) {
+                        dmg.sr = res;
+                    }
+                    if (res != dmg.sr) {
+                        if (res > dmg.sr) {
+                            dmg.wins++;
+                        }
+                        else {
+                            dmg.losses++;
+                        }
+                    }
+                    break;
+                }
+                case 2: {
+                    updSupport(res);
+                    if (sup.sr == 0) {
+                        sup.sr = res;
+                    }
+                    if (res != sup.sr) {
+                        if (res > sup.sr) {
+                            sup.wins++;
+                        }
+                        else {
+                            sup.losses++;
+                        }
+                    }
+                    break;
+                }
                 }
             }
-            break;
-        case 1:
-            if (dmg.sr == 0) {
-                dmg.sr = res;
-                updDPS(res);
-            }
-            if (res != dmg.sr) {
-                updDPS(res);
-                if (res > dmg.sr) {
-                    dmg.wins++;
-                }
-                else if (res < dmg.sr) {
-                    dmg.losses++;
-                }
-            }
-            break;
-        case 2:
-            if (sup.sr == 0) {
-                sup.sr = res;
-                updSupport(res);
-            }
-            if (res != sup.sr) {
-                updSupport(res);
-                if (res > sup.sr) {
-                    sup.wins++;
-                }
-                else if (res < sup.sr) {
-                    sup.losses++;
-                }
-            }
-            break;
         }
     }
     auto str = ctrl->config.placeholder;
@@ -126,6 +145,9 @@ void VisionWorker::analyze() {
     replace(str, "%sW%", to_string(sup.wins));
     replace(str, "%sL%", to_string(sup.losses));
     replace(str, "%sSR%", to_string(sup.sr));
+    replace(str, "%oW%", to_string(oq.wins));
+    replace(str, "%oL%", to_string(oq.losses));
+    replace(str, "%oSR%", to_string(oq.sr));
     out << str;
     out.close();
 }
@@ -139,6 +161,9 @@ void VisionWorker::replace(std::string& str, const std::string& from, const std:
 
 void VisionWorker::process() {
     while (true) {
+        //if (targetHWND != GetForegroundWindow()) {
+        //    continue;
+        //}
         switch (mode) {
         case 0: {
             DATA2PIX();
@@ -224,6 +249,11 @@ VisionWorker::VisionWorker() {
         break;
     }
     case 2: {
+        EnumWindows(enumWindowsProc, (LPARAM)this);
+        if (targetHWND == nullptr) {
+            printf("Could not find window.\n");
+            return;
+        }
         RECT desktop;
         const HWND hDesktop = GetDesktopWindow();
         GetWindowRect(hDesktop, &desktop);
@@ -286,5 +316,7 @@ VisionWorker::~VisionWorker() {
     boxDestroy(&srBoxes[0]);
     boxDestroy(&srBoxes[1]);
     boxDestroy(&srBoxes[2]);
+    boxDestroy(&oqDetection);
+    boxDestroy(&oqSR);
     numApi->End();
 }

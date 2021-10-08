@@ -55,6 +55,10 @@ void MainWindow::updSup(int sr) {
     ui->labelSupportSRVal->setText(QString::number(sr));
 }
 
+void MainWindow::updOQ(int sr) {
+    ui->labelOpenQSRVal->setText(QString::number(sr));
+}
+
 void MainWindow::startService() {
     if (running)
         return;
@@ -66,6 +70,7 @@ void MainWindow::startService() {
     connect(worker, SIGNAL(updTank(int)), this, SLOT(updTnk(int)));
     connect(worker, SIGNAL(updDPS(int)), this, SLOT(updDmg(int)));
     connect(worker, SIGNAL(updSupport(int)), this, SLOT(updSup(int)));
+    connect(worker, SIGNAL(updOpenQ(int)), this, SLOT(updOQ(int)));
     thread->start();
     running = true;
 }

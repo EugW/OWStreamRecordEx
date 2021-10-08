@@ -36,6 +36,9 @@ private:
     void DATA2PIX();
     void analyze();
     Box* srBoxes[3]{ boxCreate(492, 542, 51, 36), boxCreate(772, 542, 51, 36), boxCreate(1052, 542, 51, 36) };
+    Box* oqDetection = boxCreate(1010, 700, 300, 50);
+    Box* oqSR = boxCreate(1135, 500, 105, 50);
+    Box* rqDetection = boxCreate(375, 285, 160, 30);
     tesseract::TessBaseAPI* numApi;
     struct stats {
         int sr;
@@ -45,6 +48,7 @@ private:
     stats tnk{ 0, 0, 0 };
     stats dmg{ 0, 0, 0 };
     stats sup{ 0, 0, 0 };
+    stats oq { 0, 0, 0 };
     std::ofstream out;
 public:
     explicit VisionWorker();
@@ -60,6 +64,7 @@ signals:
     void updTank(int sr);
     void updDPS(int sr);
     void updSupport(int sr);
+    void updOpenQ(int sr);
 };
 
 

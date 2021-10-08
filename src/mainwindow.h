@@ -37,6 +37,7 @@ public slots:
     void updTnk(int sr);
     void updDmg(int sr);
     void updSup(int sr);
+    void updOQ(int sr);
 private:
     QGraphicsScene *graphicsScene;
     QGraphicsPixmapItem *pixmap;
