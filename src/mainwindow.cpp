@@ -36,10 +36,8 @@ void MainWindow::on_pushButtonApplySettings_clicked() {
 }
 
 void MainWindow::updImage(Pix *pix) {
-    auto swpPx = pixEndianByteSwapNew(pix);
-    memmove(imgData, pixGetData(swpPx), pixGetWidth(pix) * pixGetHeight(pix) * pixGetDepth(pix)/8);
-    pixmap->setPixmap(QPixmap::fromImage(image.rgbSwapped()));
-    pixDestroy(&swpPx);
+    memcpy(imgData, pixGetData(pix), pixGetWidth(pix) * pixGetHeight(pix) * pixGetDepth(pix)/8);
+    pixmap->setPixmap(QPixmap::fromImage(image));
     pixDestroy(&pix);
 }
 
@@ -66,7 +64,7 @@ void MainWindow::startService() {
     thread = new QThread;
     worker->moveToThread(thread);
     connect(thread, SIGNAL(started()), worker, SLOT(process()));
-    connect(worker, SIGNAL(updPreview(Pix * )), this, SLOT(updImage(Pix * )));
+    connect(worker, SIGNAL(updPreview(Pix*)), this, SLOT(updImage(Pix*)));
     connect(worker, SIGNAL(updTank(int)), this, SLOT(updTnk(int)));
     connect(worker, SIGNAL(updDPS(int)), this, SLOT(updDmg(int)));
     connect(worker, SIGNAL(updSupport(int)), this, SLOT(updSup(int)));
