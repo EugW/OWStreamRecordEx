@@ -139,9 +139,6 @@ void VisionWorker::replace(std::string& str, const std::string& from, const std:
 
 void VisionWorker::process() {
     while (true) {
-        //if (targetHWND != GetForegroundWindow()) {
-        //    continue;
-        //}
         switch (mode) {
         case 0: {
             DATA2PIX();
@@ -154,9 +151,8 @@ void VisionWorker::process() {
             break;
         }
         case 2: {
-            scrData = mPic->data;
             DATA2PIX();
-            mPic->wait = false;
+            scrData = rsc->pData;
             break;
         }
         }
@@ -227,11 +223,6 @@ VisionWorker::VisionWorker() {
         break;
     }
     case 2: {
-        EnumWindows(enumWindowsProc, (LPARAM)this);
-        if (targetHWND == nullptr) {
-            printf("Could not find window.\n");
-            return;
-        }
         RECT desktop;
         const HWND hDesktop = GetDesktopWindow();
         GetWindowRect(hDesktop, &desktop);
@@ -241,16 +232,8 @@ VisionWorker::VisionWorker() {
         bi.biWidth = width;
         bi.biHeight = -height;
         size = width * height * 4;
-        mPic = (MPIC*)malloc(sizeof(MPIC));
-        if (mPic == nullptr) {
-            printf("Couldn't alloc memory (INIT)\n");
-            break;
-        }
-        mPic->data = nullptr;
-        mPic->height = 0;
-        mPic->wait = true;
-        mPic->width = 0;
-        CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)startDup, (LPVOID)mPic, 0, nullptr);
+        rsc = (D3D11_MAPPED_SUBRESOURCE*)calloc(1, sizeof(D3D11_MAPPED_SUBRESOURCE));
+        CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)startDup, (LPVOID)rsc, 0, nullptr);
         break;
     }
     }
@@ -282,8 +265,8 @@ VisionWorker::~VisionWorker() {
         break;
     }
     case 2: {
-        if (mPic != nullptr) 
-            free(mPic);
+        if (scrData != nullptr)
+            free(scrData);
         break;
     }
     }

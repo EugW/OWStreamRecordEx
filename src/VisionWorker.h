@@ -50,12 +50,11 @@ private:
     stats statsArray[3]{ { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
     stats oq { 0, 0, 0 };
     std::ofstream out;
+    D3D11_MAPPED_SUBRESOURCE* rsc;
 public:
     explicit VisionWorker();
     ~VisionWorker() override;
-    MPIC* mPic = nullptr;
     void* scrData = nullptr;
-
 public slots:
     void process();
 

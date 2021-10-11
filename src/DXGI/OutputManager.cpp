@@ -259,7 +259,7 @@ DUPL_RETURN OUTPUTMANAGER::CreateSharedSurf(INT SingleOutput, _Out_ UINT* OutCou
 //
 // Present to the application window
 //
-DUPL_RETURN OUTPUTMANAGER::UpdateApplicationWindow(LPVOID px)
+DUPL_RETURN OUTPUTMANAGER::UpdateApplicationWindow(LPVOID ptr)
 {
     // In a typical desktop duplication application there would be an application running on one system collecting the desktop images
     // and another application running on a different system that receives the desktop images via a network and display the image. This
@@ -280,17 +280,7 @@ DUPL_RETURN OUTPUTMANAGER::UpdateApplicationWindow(LPVOID px)
 
     // Got mutex, so draw
     m_DeviceContext->CopyResource(m_StagingSurf, m_SharedSurf);
-    D3D11_MAPPED_SUBRESOURCE ss;
-    RtlZeroMemory(&ss, sizeof(D3D11_MAPPED_SUBRESOURCE));
-    hr = m_DeviceContext->Map(m_StagingSurf, 0, D3D11_MAP_READ, 0, &ss);
-    MPIC* pic = (MPIC*)px;
-    pic->data = ss.pData;
-    pic->height = height;
-    pic->wait = true;
-    pic->width = ss.RowPitch / 4;
-    while (pic->wait) {
-        Sleep(0);
-    }
+    hr = m_DeviceContext->Map(m_StagingSurf, 0, D3D11_MAP_READ, 0, (D3D11_MAPPED_SUBRESOURCE*)ptr);
     m_DeviceContext->Unmap(m_StagingSurf, 0);
 
     // Release keyed mutex
