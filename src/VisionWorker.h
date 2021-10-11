@@ -39,15 +39,15 @@ private:
     Box* oqDetection = boxCreate(1010, 700, 300, 50);
     Box* oqSR = boxCreate(1135, 500, 105, 50);
     Box* rqDetection = boxCreate(375, 285, 160, 30);
+    char refoq[33] = "NO ROLE LIMITS ON HERO SELECTION";
+    char refrq[12] = "ROLE SELECT";
     tesseract::TessBaseAPI* numApi;
     struct stats {
         int sr;
         int wins;
         int losses;
     };
-    stats tnk{ 0, 0, 0 };
-    stats dmg{ 0, 0, 0 };
-    stats sup{ 0, 0, 0 };
+    stats statsArray[3]{ { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
     stats oq { 0, 0, 0 };
     std::ofstream out;
 public:

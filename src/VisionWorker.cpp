@@ -45,8 +45,7 @@ void VisionWorker::analyze() {
     char* test1 = numApi->GetUTF8Text();
     pixDestroy(&pixoq);
     numApi->Clear();
-    char ref[33] = "NO ROLE LIMITS ON HERO SELECTION";
-    if (memcmp(test1, &ref, 32) == 0) {
+    if (memcmp(test1, &refoq, 32) == 0) {
         //OPEN Q DETECTED
         PIX* oqq = pixClipRectangle(img, oqSR, nullptr);
         //pixWritePng("oqq.png", oqq, 0.0);
@@ -67,6 +66,7 @@ void VisionWorker::analyze() {
                 oq.losses++;
             }
         }
+        oq.sr = res;
     }
     else {
         //OPEN Q NOT DETECTED
@@ -75,8 +75,7 @@ void VisionWorker::analyze() {
         test1 = numApi->GetUTF8Text();
         pixDestroy(&pixrq);
         numApi->Clear();
-        char ref2[12] = "ROLE SELECT";
-        if (memcmp(test1, &ref2, 11) == 0) {
+        if (memcmp(test1, &refrq, 11) == 0) {
             //ROLE Q DETECTED
             for (int i = 0; i < 3; i++) {
                 PIX* targetPix = pixClipRectangle(img, srBoxes[i], nullptr);
@@ -85,50 +84,29 @@ void VisionWorker::analyze() {
                 pixDestroy(&targetPix);
                 numApi->Clear();
                 int res = std::atoi(txt);
+                if (statsArray[i].sr == 0) {
+                    statsArray[i].sr = res;
+                }
+                if (res != statsArray[i].sr) {
+                    if (res > statsArray[i].sr) {
+                        statsArray[i].wins++;
+                    }
+                    else {
+                        statsArray[i].losses++;
+                    }
+                }
+                statsArray[i].sr = res;
                 switch (i) {
                 case 0: {
                     updTank(res);
-                    if (tnk.sr == 0) {
-                        tnk.sr = res;
-                    }
-                    if (res != tnk.sr) {
-                        if (res > tnk.sr) {
-                            tnk.wins++;
-                        }
-                        else {
-                            tnk.losses++;
-                        }
-                    }
                     break;
                 }
                 case 1: {
                     updDPS(res);
-                    if (dmg.sr == 0) {
-                        dmg.sr = res;
-                    }
-                    if (res != dmg.sr) {
-                        if (res > dmg.sr) {
-                            dmg.wins++;
-                        }
-                        else {
-                            dmg.losses++;
-                        }
-                    }
                     break;
                 }
                 case 2: {
                     updSupport(res);
-                    if (sup.sr == 0) {
-                        sup.sr = res;
-                    }
-                    if (res != sup.sr) {
-                        if (res > sup.sr) {
-                            sup.wins++;
-                        }
-                        else {
-                            sup.losses++;
-                        }
-                    }
                     break;
                 }
                 }
@@ -136,15 +114,15 @@ void VisionWorker::analyze() {
         }
     }
     auto str = ctrl->config.placeholder;
-    replace(str, "%tW%", to_string(tnk.wins));
-    replace(str, "%tL%", to_string(tnk.losses));
-    replace(str, "%tSR%", to_string(tnk.sr));
-    replace(str, "%dW%", to_string(dmg.wins));
-    replace(str, "%dL%", to_string(dmg.losses));
-    replace(str, "%dSR%", to_string(dmg.sr));
-    replace(str, "%sW%", to_string(sup.wins));
-    replace(str, "%sL%", to_string(sup.losses));
-    replace(str, "%sSR%", to_string(sup.sr));
+    replace(str, "%tW%", to_string(statsArray[0].wins));
+    replace(str, "%tL%", to_string(statsArray[0].losses));
+    replace(str, "%tSR%", to_string(statsArray[0].sr));
+    replace(str, "%dW%", to_string(statsArray[1].wins));
+    replace(str, "%dL%", to_string(statsArray[1].losses));
+    replace(str, "%dSR%", to_string(statsArray[1].sr));
+    replace(str, "%sW%", to_string(statsArray[2].wins));
+    replace(str, "%sL%", to_string(statsArray[2].losses));
+    replace(str, "%sSR%", to_string(statsArray[2].sr));
     replace(str, "%oW%", to_string(oq.wins));
     replace(str, "%oL%", to_string(oq.losses));
     replace(str, "%oSR%", to_string(oq.sr));
