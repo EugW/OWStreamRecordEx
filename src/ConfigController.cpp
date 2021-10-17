@@ -27,7 +27,7 @@ void ConfigController::loadConfig() {
                     DWORD dwResourceSize = SizeofResource(nullptr, hResource);
                     if (0 != dwResourceSize) {
                         ofstream out(szPath);
-                        out << (char*)pLockedResource;
+                        out.write((char*)pLockedResource, dwResourceSize);
                         out.close();
                     }
                 }
@@ -62,7 +62,7 @@ void ConfigController::saveConfig() {
                     DWORD dwResourceSize = SizeofResource(nullptr, hResource);
                     if (0 != dwResourceSize) {
                         ofstream out(szPath);
-                        out << (char*)pLockedResource;
+                        out.write((char*)pLockedResource, dwResourceSize);
                         out.close();
                     }
                 }
